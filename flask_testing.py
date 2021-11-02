@@ -12,7 +12,7 @@ app.add_api('ECE_461_Fall_2021_Project_2_spec_v1.0.yaml')
 @app.route('/')
 def home():
     """
-    This function just responds to the browser ULR
+    This function just responds to the browser URL
     localhost:5000/
     :return:        the rendered template 'home.html'
     """

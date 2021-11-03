@@ -113,19 +113,19 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: unexpected error
         "200":
-          #content:
-            #application/json:
-            #  schema:
-            #    $ref: '#/components/schemas/Package'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
           description: pet response
       operationId: PackageRetrieve
       description: Return this package.
     put:
       requestBody:
-        #content:
-        #  application/json:
-        #    schema:
-        #      $ref: '#/components/schemas/Package'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Package'
         required: true
       parameters:
       - name: id

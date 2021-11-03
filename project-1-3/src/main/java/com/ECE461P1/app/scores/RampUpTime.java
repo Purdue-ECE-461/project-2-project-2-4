@@ -1,9 +1,9 @@
 package com.ECE461P1.app.scores;
 
-import java.io.*;
-import java.net.*;
 import com.jcabi.github.*;
+
 import javax.json.*;
+import java.io.IOException;
 
 public class RampUpTime extends Score {
   private float scoreScale = 0.25f;

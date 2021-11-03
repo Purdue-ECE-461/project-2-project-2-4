@@ -1,8 +1,9 @@
 package com.ECE461P1.app.scores;
 
 import com.jcabi.github.*;
-import java.io.*;
+
 import javax.json.JsonObject;
+import java.io.IOException;
 
 public class License extends Score {
   private String[] validLicenses = {"\"lgpl-2.1\"", "\"lgpl-3.0\"", "\"gpl-2.0\"", "\"gpl-3.0\"", "\"mpl-2.0\"", "\"apache-2.0\"", "\"bsl-1.0\"", "\"mit\""};
@@ -44,7 +45,7 @@ public class License extends Score {
   }
 
   public static void main (String[] args) {
-    License test = new License("walletconnect", "walletconnect-example-dapp");
+    License test = new License("jonschlinkert", "even");
     test.getLicenseScore();
   }
 }

@@ -1,7 +1,11 @@
 package com.ECE461P1.app;
+
 import com.ECE461P1.app.scores.*;
-import java.util.regex.*;
-import java.io.*;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class Url {
   private String orgUrl = "";
@@ -57,7 +61,7 @@ public class Url {
     return netScore;
   }
   public String toString(){
-    if(correctnessScore == null){//scores where not initalized because http request limit has been reached
+    if(correctnessScore == null){//com.ECE461P1.app.scores where not initalized because http request limit has been reached
       String str = "" + orgUrl + " 0.0 0.0 0.0 0.0 0.0 0.0";
       return str;
     }

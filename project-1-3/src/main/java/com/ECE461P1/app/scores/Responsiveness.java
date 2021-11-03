@@ -1,10 +1,10 @@
 package com.ECE461P1.app.scores;
 
 import com.jcabi.github.*;
+
 import javax.json.JsonObject;
+import java.io.IOException;
 import java.util.EnumMap;
-import java.io.*;
-import java.net.*;
 
 public class Responsiveness extends Score {
   public Responsiveness (String _owner, String _repo){

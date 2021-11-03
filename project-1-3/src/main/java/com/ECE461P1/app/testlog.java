@@ -1,10 +1,18 @@
 package com.ECE461P1.app;
-import java.util.regex.*;
-import java.io.*;
-import java.util.*;
-import java.net.*;
+
 import org.jsoup.*;
 import org.jsoup.nodes.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class testlog {
   static int numTests = 0;
@@ -90,7 +98,7 @@ public class testlog {
     System.out.println("\ntesting full run with test urls for code coverage ...");
     Url[] urls = App.parseURLS(new File("UrlTest.txt"));
     for (Url url : urls){
-      if(url.correctnessScore == null){continue;}//scores where not initialized because http request limit has been reached
+      if(url.correctnessScore == null){continue;}//com.ECE461P1.app.scores where not initialized because http request limit has been reached
       
       numTests++;
       System.out.println("\nTesting correctness on url: " + url.getOrginalUrl());

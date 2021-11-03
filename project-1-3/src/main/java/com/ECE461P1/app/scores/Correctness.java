@@ -1,15 +1,18 @@
 package com.ECE461P1.app.scores;
-import java.io.*;
-import java.nio.file.*;
-import java.nio.file.Files.*;
-import java.util.*;
-import java.util.stream.*;
+
+import com.ECE461P1.app.App;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import com.ECE461P1.app.App;
+import org.eclipse.jgit.api.errors.TransportException;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Correctness extends Score {
   File repoClone;

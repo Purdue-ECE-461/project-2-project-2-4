@@ -2,19 +2,19 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 # sources
-SRCSDIR := src/main/java/com/ECE461P1/app/
+SRCSDIR := src/main/java/com/
 SRCS := \
         App.java \
         testlog.java \
-        scores/Score.java \
-        scores/RampUpTime.java \
-				scores/Responsivness.java \
-				scores/License.java \
-				scores/Correctness.java \
-				scores/BusFactor.java
+        com.ECE461P1.app.scores/Score.java \
+        com.ECE461P1.app.scores/RampUpTime.java \
+				com.ECE461P1.app.scores/Responsiveness.java \
+				com.ECE461P1.app.scores/License.java \
+				com.ECE461P1.app.scores/Correctness.java \
+				com.ECE461P1.app.scores/BusFactor.java
 
 # classes
-CLSDIR := target/classes/java/com/ECE461P1/app/
+CLSDIR := target/classes/java/com/
 CLS := $(SRCS:%.java=%.class)
 
 # compiler and compiler flags

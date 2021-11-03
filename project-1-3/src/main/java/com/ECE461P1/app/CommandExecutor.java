@@ -1,18 +1,10 @@
 package com.ECE461P1.app;
 
-import java.util.Map;
-import java.lang.ProcessBuilder;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.*;
+import java.util.Map;
 
 //code refers to https://stackoverflow.com/questions/40503074/how-to-run-npm-command-in-java-using-process-builder
 //To see available NPM commands, go to https://docs.npmjs.com/cli/v7/commands

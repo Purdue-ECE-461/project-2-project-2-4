@@ -1,27 +1,33 @@
-package com.ECE461P1.app.scores;
-//import com.ECE461P1.app.Url;
+package com.ECE461P1.app.scores;//import com.ECE461P1.app.Url;
+
 import com.jcabi.github.*;
-import java.io.*;
-import java.net.*;
-import java.util.Base64;
+
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 //import java.net.http.HttpGet;
 
-import java.net.http.HttpResponse;
 
 public class Score {
+
   float score = 0.0f;
   String ownerName = "";
   String repoName = "";
   String apiUrl = "";
   String coord = "";
   Github gh = null;
+  static final Logger logger = LoggerFactory.getLogger(Score.class);
+
+
   public Score(String _owner, String _repo){
     ownerName = _owner;
     repoName = _repo;
@@ -102,12 +108,16 @@ public class Score {
 //    System.out.println("URL from conURL: " + conn.getHeaderField(0));
 //    System.out.println("Token: " + System.getenv("GITHUB_TOKEN"));
     HttpClient client = HttpClient.newHttpClient();
-//
+
+    logger.debug("HttpClient: {}", client);
+    logger.debug(System.getenv("GITHUB_TOKEN"));
+    String token = System.getenv("GITHUB_TOKEN");
     HttpRequest request = HttpRequest.newBuilder()
             .header("Authorization", "Bearer " + System.getenv("GITHUB_TOKEN"))
             .uri(URI.create(conUrl.toString()))
             .build();
     HttpResponse<String> response;
+    logger.debug("HttpResponse: {}", request);
     try {
       response = client.send(request, HttpResponse.BodyHandlers.ofString());
 //              .thenApply(HttpResponse::body)

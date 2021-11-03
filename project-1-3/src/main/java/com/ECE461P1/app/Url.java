@@ -42,7 +42,10 @@ public class Url {
     rampScore = new RampUpTime(ownerName, repoName);
     responseScore = new Responsiveness(ownerName, repoName);
   }
-
+  public float getBusScore() {
+    busScore.getBusFactor();
+    return busScore.getScore();
+  }
   public String getOrginalUrl(){
     return orgUrl;
   }

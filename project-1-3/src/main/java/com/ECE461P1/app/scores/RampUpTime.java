@@ -95,9 +95,8 @@ public class RampUpTime extends Score {
 
   public float getRampUpTimeScore () {
     System.out.println("Calculating ramp up time score...");
-    Github gh = getGithub();
+//    Github gh = getGithub();
     
-    float rampUpTimeScore = 0.0f;
     float readmeSize = readmeHelper();
     //System.out.println(readmeSize);
     float fileCount = fileCountHelper();
@@ -105,7 +104,7 @@ public class RampUpTime extends Score {
     float forkCount = forkCountHelper();
     //System.out.println(forkCount);
 
-    rampUpTimeScore = scoreScale * (readmeSize / fileCount + forkScale * forkCount);
+    float rampUpTimeScore = scoreScale * (readmeSize / fileCount + forkScale * forkCount);
 
     if (rampUpTimeScore > 1.0f) {
       rampUpTimeScore = 1.0f;

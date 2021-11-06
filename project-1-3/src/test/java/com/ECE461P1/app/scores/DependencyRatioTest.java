@@ -12,16 +12,11 @@ class DependencyRatioTest {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/dependencyTestData.csv", numLinesToSkip = 0)
-    void isMajMinPinned(String input, int expected) { //TODO: why does this not work with csv
+    void isMajMinPinned(String input, int expected) {
         DependencyRatio d = new DependencyRatio();
         String str = "a";
-        System.out.println( str.strip() == input.strip());
+//        System.out.println( str.strip() == input.strip());
         assertEquals(d.isMajMinPinned(input), expected);
     }
 
-    @Test
-    void isMajMinPinned1() {
-        DependencyRatio d = new DependencyRatio();
-        assertEquals(0, d.isMajMinPinned("a"));
-    }
 }

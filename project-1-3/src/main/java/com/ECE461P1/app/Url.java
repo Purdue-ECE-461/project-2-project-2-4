@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class Url {
-  private String orgUrl = "";
-  private String orgDomain = "";
-  String ownerName = "";
-  String repoName = "";
+   String orgUrl = "";
+   String orgDomain = "";
+  public String ownerName = ""; //TODO: permission levels
+  public String repoName = "";
   String apiUrl = "";
   float netScore = 0.0f;
   Score s = new Score(ownerName,repoName);
@@ -72,7 +72,7 @@ public class Url {
     return str;
   }
 
-  private boolean parseUrl(String url){
+  boolean parseUrl(String url){
     Pattern p = Pattern.compile("(http|https):\\/\\/(www.)?(.*).com\\/(.*)\\/(.*)$");
     try {
       Matcher m = p.matcher(url);

@@ -8,11 +8,7 @@
     <artifactId>trustworthiness_copy</artifactId>
     <version>1.0-SNAPSHOT</version>
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>ch.qos.logback</groupId>-->
-<!--            <artifactId>logback-core</artifactId>-->
-<!--            <version>1.2.6</version>-->
-<!--        </dependency>-->
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
@@ -46,16 +42,42 @@
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.1</version>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.graphql-java</groupId>-->
+<!--            <artifactId>graphql-spring-boot-starter</artifactId>-->
+<!--            <version>5.0.2</version>-->
+<!--        </dependency>-->
+        <!--        <dependency>-->
+<!--            <groupId>com.graphql-java-kickstart</groupId>-->
+<!--            <artifactId>graphql-java-tools</artifactId>-->
+<!--            <version>12.0.0</version>-->
+<!--        </dependency>-->
+<!--    <exclusions>-->
+<!--        <exclusion>-->
+<!--            <groupId>ch.qos.logback</groupId>-->
+<!--            <artifactId>logback-core</artifactId>-->
+<!--            <version>1.2.3</version>-->
+<!--        </exclusion>-->
+<!--    </exclusions>-->
 
     </dependencies>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+
+<!--        <properties>-->
+<!--        <kotlin.version>1.5.0</kotlin.version>-->
+<!--        </properties>-->
+
     </properties>
+
+
+
 
 
 

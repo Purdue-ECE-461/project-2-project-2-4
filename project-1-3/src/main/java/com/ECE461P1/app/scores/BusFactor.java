@@ -12,18 +12,7 @@ public class BusFactor extends Score {
     super(_owner, _repo);
   }
 
-  public HttpURLConnection makeHttpConnection() throws java.io.IOException{
-      URL contributorsUrl = new URL(apiUrl + "/contributors");
-      int respon = httpreq(contributorsUrl);
-      HttpURLConnection conn = (HttpURLConnection) contributorsUrl.openConnection();
-      conn.setRequestMethod("GET");
-      conn.setRequestProperty("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
-      if (respon == 200) {
-        return conn;
-      } else {
-        throw new java.io.IOException();
-      }
-  }
+
 
   public void getBusFactor() {
     System.out.println("Calculating bus factor score...");

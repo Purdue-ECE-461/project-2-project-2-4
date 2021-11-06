@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+if [ $# -eq 0 ]; then
+    echo "No arguments supplied"
+    exit 1
+fi
+
+if [ "$1" == "install" ]; then
+    wget https://nodejs.org/dist/v14.18.0/node-v14.18.0-linux-x64.tar.xz
+    tar -xf node-v14.18.0-linux-x64.tar.xz
+    #wget https://dlcdn.apache.org/maven/maven-3/3.8.2/binaries/apache-maven-3.8.2-bin.tar.gz
+    #tar -xzf apache-maven-3.8.2-bin.tar.gz
+    exit 0
+fi
+
+if [ "$1" == "test" ]; then
+  java -cp target/project-1-3-1.0-SNAPSHOT.jar com.ECE461P1.app.testlog
+  exit 0
+fi
+
+if [ $# -eq 1 ]; then
+    java -cp target/project-1-3-1.0-SNAPSHOT.jar com.ECE461P1.app.App "$1"
+    exit 0
+fi

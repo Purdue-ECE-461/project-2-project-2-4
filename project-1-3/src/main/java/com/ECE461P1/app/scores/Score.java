@@ -3,6 +3,7 @@ package com.ECE461P1.app.scores;//import com.ECE461P1.app.Url;
 import com.jcabi.github.*;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -29,10 +30,16 @@ public class Score {
 
 
   public Score(String _owner, String _repo){
-    ownerName = _owner;
-    repoName = _repo;
-    coord = ownerName + "/" + repoName;
-    apiUrl = "https://api.github.com/repos/" + coord;
+      ownerName = _owner;
+      repoName = _repo;
+      coord = ownerName + "/" + repoName;
+      apiUrl = "https://api.github.com/repos/" + coord;
+  }
+  public Score() {
+      ownerName = "";
+      repoName = "";
+      coord = "";
+      apiUrl = "https://api.github.com/repos/" + coord;
   }
   public String getOwnerName(){
     return ownerName;
@@ -100,7 +107,21 @@ public class Score {
     }
     return score;
   }
-  
+
+  public HttpURLConnection makeHttpConnection() throws java.io.IOException{
+    URL contributorsUrl = new URL(apiUrl + "/contributors");
+    int respon = httpreq(contributorsUrl);
+    HttpURLConnection conn = (HttpURLConnection) contributorsUrl.openConnection();
+    conn.setRequestMethod("GET");
+    conn.setRequestProperty("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
+    if (respon == 200) {
+      return conn;
+    } else {
+      throw new java.io.IOException();
+    }
+  }
+
+
   public int httpreq(URL conUrl) throws MalformedURLException, IOException{
     System.out.println("URL from conURL: " + conUrl.toString());
 

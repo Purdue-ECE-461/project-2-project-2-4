@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory;
 public class Score {
 
   float score = 0.0f;
-  String ownerName = "";
-  String repoName = "";
-  String apiUrl = "";
-  String coord = "";
+  String ownerName;
+  String repoName;
+  String apiUrl;
+  String coord;
   Github gh = null;
   static final Logger logger = LoggerFactory.getLogger(Score.class);
 
@@ -96,13 +96,13 @@ public class Score {
     return gh;
   }
   
-  public float checkExistance(){
+  public float checkExistence(){
     try { //check if repo exists
       URL conUrl = new URL(apiUrl + "/readme");
       int respon = httpreq(conUrl);
       if (respon != 200){score = -1.0f;}
     } catch (Exception e){
-      System.out.println("Exception in Score.checkExistance: " + e);
+      System.out.println("Exception in Score.checkExistence: " + e);
       score = -1.0f;
     }
     return score;
@@ -122,7 +122,7 @@ public class Score {
   }
 
 
-  public int httpreq(URL conUrl) throws MalformedURLException, IOException{
+  public int httpreq(URL conUrl) throws IOException{
     System.out.println("URL from conURL: " + conUrl.toString());
 
 //    HttpURLConnection conn = (HttpURLConnection) conUrl.openConnection();
@@ -132,7 +132,7 @@ public class Score {
 
     logger.debug("HttpClient: {}", client);
     logger.debug(System.getenv("GITHUB_TOKEN"));
-    String token = System.getenv("GITHUB_TOKEN");
+//    String token = System.getenv("GITHUB_TOKEN");
     HttpRequest request = HttpRequest.newBuilder()
             .header("Authorization", "Bearer " + System.getenv("GITHUB_TOKEN"))
             .uri(URI.create(conUrl.toString()))
@@ -158,7 +158,7 @@ public class Score {
 //            .uri(URI.create("https://api.github.com/repos/:owner/:repo/commits"))
 //            .build();
 
-    int respon = 0;
+    int respon;
 
     try {
       respon = response.statusCode();

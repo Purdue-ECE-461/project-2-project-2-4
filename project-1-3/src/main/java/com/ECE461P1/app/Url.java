@@ -33,7 +33,7 @@ public class Url {
 
     s = new Score(ownerName,repoName);
     apiUrl = s.getApi();
-    float score = s.checkExistance();
+    float score = s.checkExistence();
     if(score == -1.0f){return;}
 
     busScore = new BusFactor(ownerName, repoName);

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Packages Page</title>
+</head>
+<body>
+    <h1>Current Packages Stored</h1>
+    {% for your_list_element in package_names %}
+    <p>{{ your_list_element }} </p>
+    {% endfor %}
+
+    <p> Viewing Page {{ curr_page }} of {{ max_pages }} </p>
+
+    <form method="POST" action="/view-packages" enctype="multipart/form-data">
+        <label for="curr_page">Go to page: </label>
+        <input type="number" name="next_page">
+        <input type="submit">
+    </form>
+
+</body>
+</html>

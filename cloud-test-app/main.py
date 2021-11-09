@@ -4,12 +4,17 @@ import logging
 import os
 from typing import Union
 from google.cloud import storage
+from google.cloud.storage import client
 
 app = Flask(__name__, template_folder="templates")
 
 # Configure this environment variable via app.yaml
 CLOUD_STORAGE_BUCKET = os.environ['CLOUD_STORAGE_BUCKET']
+MAX_RESULTS_PER_PAGE = 10
 
+def round_up(dividend, divisor) -> int:
+    output = int(dividend // divisor + (dividend % divisor > 0))
+    return output
 
 @app.route('/')
 def root():
@@ -55,28 +60,70 @@ def retrievePackage():
 
     return render_template('retrieve_package.html')
 
+@app.route('/view-packages', methods=['GET', 'POST'])
+def viewPackages(curr_page = 1):
+    render_template('loading.html')
+    if request.method == 'POST':
+        curr_page = request.form['next_page']
+    print("CURR PAGE1: ", curr_page)
+    try:
+        curr_page = int(curr_page)
+    except:
+        curr_page = 1
+    print("CURR PAGE2: ", curr_page)
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+    blob_iter = bucket.list_blobs(bucket)
+    #curr_page = 1                          #hard coded placeholder
+
+    all_pages = bucket.list_blobs().pages
+    total_blobs = 0
+    for page in all_pages:
+        total_blobs += page.num_items
+    max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
+    if (curr_page < 1):           #Should we deal with an upper bound?
+        curr_page = 1
+    elif(curr_page > max_pages):
+        curr_page = max_pages
+    max_results = MAX_RESULTS_PER_PAGE * curr_page
+    package_names = []
+    print("CURR PAGE3: ", curr_page)
+    for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
+        if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
+            print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
+            package_names.append(blob.name)
+
+
+    return render_template('view_packages.html', package_names = package_names, curr_page = curr_page, max_pages = max_pages)
 
 @app.route('/upload', methods=['POST'])
 def upload():
     """Process the uploaded file and upload it to Google Cloud Storage."""
-    uploaded_file = request.files.get('file')
-
-    if not uploaded_file:
-        return 'No file uploaded.', 400
-
     # Create a Cloud Storage client.
     gcs = storage.Client()
 
     # Get the bucket that the file will be uploaded to.
     bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
 
-    # Create a new blob and upload the file's content.
-    blob = bucket.blob(uploaded_file.filename)
+    uploaded_files = request.files.getlist('files')
+    
+    for uploaded_file in uploaded_files:
+        
+        if not uploaded_file:
+            return 'No file uploaded.', 400
+        
 
-    blob.upload_from_string(
-        uploaded_file.read(),
-        content_type=uploaded_file.content_type
-    )
+
+        # Create a new blob and upload the file's content.
+        blob = bucket.blob(uploaded_file.filename)
+
+        blob.upload_from_string(
+            uploaded_file.read(),
+            content_type=uploaded_file.content_type
+        )
 
     # Make the blob public. This is not necessary if the
     # entire bucket is public.

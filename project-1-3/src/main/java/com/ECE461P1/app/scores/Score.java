@@ -25,7 +25,8 @@ public class Score {
   String repoName;
   String apiUrl;
   String coord;
-  Github gh = null;
+  Github gh;
+  private String gitToken = "";
   static final Logger logger = LoggerFactory.getLogger(Score.class);
 
 
@@ -34,6 +35,8 @@ public class Score {
       repoName = _repo;
       coord = ownerName + "/" + repoName;
       apiUrl = "https://api.github.com/repos/" + coord;
+      gitToken = System.getenv("GITHUB_TOKEN");
+      gh = getGithub(gitToken);
   }
   public Score() {
       ownerName = "";
@@ -75,13 +78,21 @@ public class Score {
     String str = coord + "/" + property;
     return gh.repos().get(new Coordinates.Simple(str));
   }
+
   public Repo getJgitRepo (Github github) {
     return github.repos().get(new Coordinates.Simple(coord));
   }
+
+
   public Repo getJgitRepo (Github github, String property) {
+    if (github == null) {
+      gh = getGithub(gitToken);
+    }
     String str = coord + "/" + property;
-    return github.repos().get(new Coordinates.Simple(str));
+    return github.repos().get(new Coordinates.Simple(str)); //TODO
   }
+
+
   public Repo getJgitRepo () {
     if (gh == null) {gh = getGithub();}
     return gh.repos().get(new Coordinates.Simple(coord));
@@ -108,10 +119,10 @@ public class Score {
     return score;
   }
 
-  public HttpURLConnection makeHttpConnection() throws java.io.IOException{
-    URL contributorsUrl = new URL(apiUrl + "/contributors");
-    int respon = httpreq(contributorsUrl);
-    HttpURLConnection conn = (HttpURLConnection) contributorsUrl.openConnection();
+  public HttpURLConnection makeHttpConnection(String path) throws java.io.IOException{
+    URL url = new URL(path);
+    int respon = httpreq(url);
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     conn.setRequestProperty("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
     if (respon == 200) {
@@ -120,6 +131,8 @@ public class Score {
       throw new java.io.IOException();
     }
   }
+
+
 
 
   public int httpreq(URL conUrl) throws IOException{

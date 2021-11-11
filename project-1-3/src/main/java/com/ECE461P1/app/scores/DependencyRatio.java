@@ -1,5 +1,4 @@
 package com.ECE461P1.app.scores;
-import javax.json.Json;
 import javax.json.JsonValue;
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -12,33 +11,43 @@ public class DependencyRatio extends Score{
     String dirPath;
     public DependencyRatio(String _owner, String _repo) {
         super(_owner, _repo);
-        dirPath = "";
+        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json"; //TODO: replace with actual
     }
-    public DependencyRatio(String _dirPath) {
+    public DependencyRatio(String _repoName) { //testing purposes
         super();
-        dirPath = _dirPath;
+        repoName = _repoName;
+        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json";
     }
 
 
-    public void getDependencyRatio() {
-        JsonHandler handler = new JsonHandler("./npmjs_repos/node_modules/" + repoName + "package.json");
+    public float getDependencyRatio() {
+        JsonReadHandler handler = new JsonReadHandler(dirPath);
         Collection<JsonValue> jsonVals = handler.getFieldValues("dependencies");
         try {
-            jsonVals.size();
-            score = (float) 1;
+            float pinnedDeps = (float) findNumPinnedDeps(jsonVals);
+            float numDeps = (float) findNumDeps(jsonVals);
+            return (float) pinnedDeps / numDeps;
         } catch (Exception e) {
-            score = (float) 0;
+            return (float) 0;
         }
     }
 
+    @Override
+    public float getScore() {
+        score = getDependencyRatio();
+        return score;
+    }
+
+
     int findNumPinnedDeps(Collection<JsonValue> jsonVals){
+        if (jsonVals == null) return 1;
         if (jsonVals.size() == 0) return 1;
         int count = 0;
         Iterator<JsonValue> valIter = jsonVals.iterator();
         while(valIter.hasNext()){
             String s = valIter.next().toString();
             s = s.substring( 1, s.length() - 1 );
-            System.out.println(s);
+//            System.out.println(s);
             count += isMajMinPinned(s);
         }
 
@@ -46,6 +55,7 @@ public class DependencyRatio extends Score{
     }
 
     int findNumDeps(Collection<JsonValue> jsonVals){
+        if (jsonVals == null) return 1;
         if (jsonVals.size() == 0) return 1;
         return jsonVals.size();
     }
@@ -57,7 +67,7 @@ public class DependencyRatio extends Score{
         if (isBadWildcard(s))           return 0;
         if (isNotVersion(s))            return 0;
         if (isBadCompare(s))            return 0;
-        if (isBadCarrot(s))             return 0;
+        if (isBadCaret(s))              return 0;
         if (isBadTilde(s))              return 0;
 
         logger.debug("{}", s);
@@ -99,10 +109,7 @@ public class DependencyRatio extends Score{
         if (Pattern.matches(regex, s)) {
             regex = "(<=?0.0.[\\d]*)|(<0.1.0)";
 
-            if (!Pattern.matches(regex, s)) {
-                return true;
-            }
-//            return true;
+            return !Pattern.matches(regex, s);
         }
 
 
@@ -118,7 +125,7 @@ public class DependencyRatio extends Score{
         return false;
     }
 
-    public boolean isBadCarrot(String s) {
+    public boolean isBadCaret(String s) {
         //the 2 regex expressions are for all the valid carrot expressions,
         //if it doesn't match either then it's bad
         String regex = "\\^.*";
@@ -127,10 +134,14 @@ public class DependencyRatio extends Score{
             if (Pattern.matches(regex, s)) {
                 return false;
             }
-            regex = "\\^[1-9]*[.][1-9]*[.][\\d]*.*";
-            if (Pattern.matches(regex, s)) {
-                return false;
-            }
+//            regex = "\\^[1-9]*[.][1-9]*[.][\\d]*.*";
+//            if (Pattern.matches(regex, s)) {
+//                return false;
+//            }
+//            regex = "\\^[1-9]*[.][1-9]*[.][1-9]*.*";
+//            if (Pattern.matches(regex, s)) {
+//                return false;
+//            }
             return true;
         }
         return false;
@@ -145,8 +156,6 @@ public class DependencyRatio extends Score{
         }
         return false;
     }
-    //TODO: digits are not set up to handle repeating digits
-
 
 
 }

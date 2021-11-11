@@ -14,6 +14,7 @@ public class RampUpTime extends Score {
   }
 
   private float readmeHelper () {
+    if (gh == null) System.out.println("NULL");
     Repo readmeRepo = getJgitRepo(gh, "readme");
 
     JsonObject info = null;

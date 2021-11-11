@@ -20,8 +20,11 @@ public class Url {
   RampUpTime rampScore;
   License licenseScore;
   Responsiveness responseScore;
-  
-  public Url(String _url){
+  JsonWriteHandler jwHandler;
+  DependencyRatio depScore;
+
+
+    public Url(String _url){
     orgUrl = _url;
 
     boolean parseCheck = parseUrl(orgUrl);
@@ -30,7 +33,7 @@ public class Url {
       return;
     }
 
-
+    jwHandler = new JsonWriteHandler("output.txt");
     s = new Score(ownerName,repoName);
     apiUrl = s.getApi();
     float score = s.checkExistence();
@@ -41,6 +44,7 @@ public class Url {
     licenseScore = new License(ownerName, repoName);
     rampScore = new RampUpTime(ownerName, repoName);
     responseScore = new Responsiveness(ownerName, repoName);
+    depScore = new DependencyRatio(ownerName, repoName);
   }
   public float getBusScore() {
     busScore.getBusFactor();
@@ -56,11 +60,26 @@ public class Url {
     return apiUrl;
   }
   public float calcNetScore(){
-    netScore = (float) 0.4 * correctnessScore.getScore();
-    netScore += (float) 0.3 * rampScore.getScore();
+    netScore = (float) 0.3 * correctnessScore.getScore();
+    jwHandler.addUrlItem("correctnessScore", correctnessScore.getScore());
+
+    netScore += (float) 0.25 * rampScore.getScore();
+    jwHandler.addUrlItem("rampScore", rampScore.getScore());
+
     netScore += (float) 0.2 * responseScore.getScore();
+    jwHandler.addUrlItem("responseScore", responseScore.getScore());
+
+    netScore += (float) 0.15 * depScore.getScore();
+    jwHandler.addUrlItem("depScore", depScore.getScore());
+
     netScore += (float) 0.1 * busScore.getScore();
+    jwHandler.addUrlItem("busScore", busScore.getScore());
+
     netScore *= licenseScore.getScore();
+    jwHandler.addUrlItem("licenseScore", licenseScore.getScore());
+
+    jwHandler.addUrlItem("netScore", netScore);
+
     return netScore;
   }
   public String toString(){

@@ -35,3 +35,14 @@ for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
 #    for index_blob,blob in enumerate(page):
 #        print("At index: ",index_blob, " IS BLOB: ",blob.name)
 #    print("PAGE Index is: ",index_pages, " with page ", page.num_items)
+
+gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+#blobs = []
+blobs = [blob_new.name for blob_new in bucket.list_blobs()]
+#for blob_new in bucket.list_blobs():
+#    blobs.append(blob_new.name)
+
+print("\n",blobs)

@@ -1,4 +1,6 @@
 import datetime
+import subprocess
+import sys
 from flask import Flask, render_template, request
 import logging
 import os
@@ -27,38 +29,66 @@ def root():
 
     return render_template('root.html')
 
+@app.route('/java-version')
+def javaVersion():
+    output2 = subprocess.run(["./Java_install/jdk-11.0.13/bin/java", "-jar", "Main.jar"], capture_output=True) # install the libraries java -jar Main.jar
+
+    version2 = output2.stdout.decode("utf-8")
+    version3 = output2.stderr.decode("utf-8")
+    print(output2.stdout.decode("utf-8"))
+    version1 = "java placeholder"
+    version1 = sys.platform
+    return render_template('javaversion.html', java_version1 = version1, java_version2 = version2, java_version3 = version3)
+
 @app.route('/hiddenpage')
 def rootSQRD():
-    # For the sake of example, use static information to inflate the template.
-    # This will be replaced with real information in later steps.
- #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
- #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
- #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
-  #                 ]
+
 
     return render_template('root.html')
 
 @app.route('/upload-package')
 def uploadPackage():
-    # For the sake of example, use static information to inflate the template.
-    # This will be replaced with real information in later steps.
- #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
- #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
- #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
-  #                 ]
+
 
     return render_template('upload_package.html')
 
 @app.route('/retrieve-package')
 def retrievePackage():
-    # For the sake of example, use static information to inflate the template.
-    # This will be replaced with real information in later steps.
- #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
- #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
- #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
-  #                 ]
 
+    #index = 
+    #gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    #bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    #blobs = [blob_new.name for blob_new in bucket.list_blobs()]
+    
+    
     return render_template('retrieve_package.html')
+
+@app.route('/download-package', methods=['POST'])
+def downloadPackage():
+    if request.method == 'POST':
+        get_package_index = int(request.form['package_index'])
+
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()]
+    target_name =  blobs[get_package_index]
+    target_blob = bucket.blob(target_name)
+    print(target_blob)
+    print(type(target_blob))
+    file_to_download = target_blob.download_to_filename(target_name)
+    bytes = target_blob.download_as_bytes()
+    print("FILE TYPE: ",type(file_to_download))
+    print("BYTES TYPE: ",type(bytes))
+    #URL_to_download = 'https://storage.googleapis.com/ece-461-project-2-team-4.appspot.com/' + target_name
+    #print(URL_to_download)
+
+    
+    #return render_template('download_package_success.html', URL_to_download=URL_to_download)
+    return render_template('download_package_success.html')
 
 @app.route('/view-packages', methods=['GET', 'POST'])
 def viewPackages(curr_page = 1):
@@ -76,7 +106,7 @@ def viewPackages(curr_page = 1):
     # Get the bucket that the file will be uploaded to.
     bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
 
-    blob_iter = bucket.list_blobs(bucket)
+    #blob_iter = bucket.list_blobs(bucket)
     #curr_page = 1                          #hard coded placeholder
 
     all_pages = bucket.list_blobs().pages
@@ -89,15 +119,16 @@ def viewPackages(curr_page = 1):
     elif(curr_page > max_pages):
         curr_page = max_pages
     max_results = MAX_RESULTS_PER_PAGE * curr_page
-    package_names = []
+    package_identifiers = []
     print("CURR PAGE3: ", curr_page)
     for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
         if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
             print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
-            package_names.append(blob.name)
+            blob_tuple = (index_blobs, blob.name)
+            package_identifiers.append(blob_tuple)
 
 
-    return render_template('view_packages.html', package_names = package_names, curr_page = curr_page, max_pages = max_pages)
+    return render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
 
 @app.route('/upload', methods=['POST'])
 def upload():

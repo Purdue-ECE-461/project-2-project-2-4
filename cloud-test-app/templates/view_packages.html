@@ -6,15 +6,22 @@
 </head>
 <body>
     <h1>Current Packages Stored</h1>
-    {% for your_list_element in package_names %}
-    <p>{{ your_list_element }} </p>
+    <h3> ID |  Package Name</h3>
+    {% for id, package in package_identifiers %}
+    <p>[{{id}}]   {{ package }} </p>
     {% endfor %}
 
     <p> Viewing Page {{ curr_page }} of {{ max_pages }} </p>
 
     <form method="POST" action="/view-packages" enctype="multipart/form-data">
-        <label for="curr_page">Go to page: </label>
+        <label for="next_page">Go to page: </label>
         <input type="number" name="next_page">
+        <input type="submit">
+    </form>
+
+    <form method="POST" action="/download-package" enctype="multipart/form-data">
+        <label for="package_index">Download Package at ID: </label>
+        <input type="number" name="package_index">
         <input type="submit">
     </form>
 

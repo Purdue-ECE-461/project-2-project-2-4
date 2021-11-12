@@ -7,9 +7,10 @@ import logging
 import os
 from io import BytesIO
 from typing import Union
+from flask.helpers import url_for
 from google.cloud import storage
 from google.cloud.storage import client
-from werkzeug.utils import secure_filename
+from werkzeug.utils import redirect, secure_filename
 
 app = fk.Flask(__name__, template_folder="templates")
 
@@ -31,6 +32,28 @@ def root():
 
 
     return fk.render_template('root.html')
+
+@app.route('/reset')
+def reset():
+
+
+    return fk.render_template('reset_warning.html')
+
+@app.route('/reset-confirmed', methods=["GET", "POST"])
+def resetConfirmed():
+    if fk.request.method == 'GET':
+        return redirect('/')
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be downloaded from.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+    for target_name in blobs:
+        target_blob = bucket.blob(target_name)  #Get the right blob by filename
+        target_blob.delete()
+    
+
+    return fk.render_template('reset_complete.html')
 
 @app.route('/java-version')
 def javaVersion():
@@ -68,14 +91,14 @@ def downloadPackage():
     blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
     target_name =  blobs[get_package_index] #Get the blob name
     target_blob = bucket.blob(target_name)  #Get the right blob by filename
-    print(target_blob)
-    print(type(target_blob))
+    #print(target_blob)
+    #print(type(target_blob))
     #file_to_download = target_blob.download_to_filename(target_name)
     #print("file_to_download TYPE: ", type(file_to_download))
     bytes = target_blob.download_as_bytes()
     #bytes.seek(0,0)
     #print("FILE TYPE: ",type(file_to_download))
-    print("BYTES TYPE: ",type(bytes))
+    #print("BYTES TYPE: ",type(bytes))
     #print("BYTES: \n\n",bytes)
     bytes_as_file = BytesIO(bytes)
     #URL_to_download = 'https://storage.googleapis.com/ece-461-project-2-team-4.appspot.com/' + target_name
@@ -151,7 +174,7 @@ def upload():
         if not (uploaded_file):
             return 'No file uploaded.', 400
         if not (allowed_file(uploaded_file.filename)):
-            return 'Unallowed file type uploaded.', 400            
+            return 'Unallowed file type uploaded. Only .zip files are accepted at this time.', 400            
         if uploaded_file.filename == '':
             return 'No selected file', 400 
 

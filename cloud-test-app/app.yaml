@@ -14,7 +14,7 @@
 
 runtime: python38
 
-instance_class: F4
+instance_class: F4  #F1 F2 F4 F4 F4_1G
 env_variables:
     CLOUD_STORAGE_BUCKET: ece-461-project-2-team-4.appspot.com
 

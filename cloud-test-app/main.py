@@ -1,18 +1,26 @@
 import datetime
 import subprocess
 import sys
-from flask import Flask, render_template, request
+import json
+import flask as fk
 import logging
 import os
+from io import BytesIO
 from typing import Union
 from google.cloud import storage
 from google.cloud.storage import client
+from werkzeug.utils import secure_filename
 
-app = Flask(__name__, template_folder="templates")
+app = fk.Flask(__name__, template_folder="templates")
 
 # Configure this environment variable via app.yaml
 CLOUD_STORAGE_BUCKET = os.environ['CLOUD_STORAGE_BUCKET']
 MAX_RESULTS_PER_PAGE = 10
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'zip'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def round_up(dividend, divisor) -> int:
     output = int(dividend // divisor + (dividend % divisor > 0))
@@ -20,81 +28,69 @@ def round_up(dividend, divisor) -> int:
 
 @app.route('/')
 def root():
-    # For the sake of example, use static information to inflate the template.
-    # This will be replaced with real information in later steps.
-  #  dummy_times = [datetime.datetime(2018, 1, 1, 10, 0, 0),
-  #                 datetime.datetime(2018, 1, 2, 10, 30, 0),
-  #                 datetime.datetime(2018, 1, 3, 11, 0, 0),
-  #                 ]
 
-    return render_template('root.html')
+
+    return fk.render_template('root.html')
 
 @app.route('/java-version')
 def javaVersion():
-    output2 = subprocess.run(["./Java_install/jdk-11.0.13/bin/java", "-jar", "Main.jar"], capture_output=True) # install the libraries java -jar Main.jar
+    output2 = subprocess.run(["./Java_install/jdk-11.0.13/bin/java", "-jar", "Main.jar"], capture_output=True) # We want this to be a string that looks like json
 
     version2 = output2.stdout.decode("utf-8")
     version3 = output2.stderr.decode("utf-8")
     print(output2.stdout.decode("utf-8"))
     version1 = "java placeholder"
     version1 = sys.platform
-    return render_template('javaversion.html', java_version1 = version1, java_version2 = version2, java_version3 = version3)
+    return fk.render_template('javaversion.html', java_version1 = version1, java_version2 = version2, java_version3 = version3)
 
 @app.route('/hiddenpage')
 def rootSQRD():
 
 
-    return render_template('root.html')
+    return fk.render_template('root.html')
 
 @app.route('/upload-package')
 def uploadPackage():
 
 
-    return render_template('upload_package.html')
+    return fk.render_template('upload_package.html')
 
-@app.route('/retrieve-package')
-def retrievePackage():
-
-    #index = 
-    #gcs = storage.Client()
-
-    # Get the bucket that the file will be uploaded to.
-    #bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-    #blobs = [blob_new.name for blob_new in bucket.list_blobs()]
-    
-    
-    return render_template('retrieve_package.html')
 
 @app.route('/download-package', methods=['POST'])
 def downloadPackage():
-    if request.method == 'POST':
-        get_package_index = int(request.form['package_index'])
+    if fk.request.method == 'POST':
+        get_package_index = int(fk.request.form['package_index'])
 
     gcs = storage.Client()
 
-    # Get the bucket that the file will be uploaded to.
+    # Get the bucket that the file will be downloaded from.
     bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-    blobs = [blob_new.name for blob_new in bucket.list_blobs()]
-    target_name =  blobs[get_package_index]
-    target_blob = bucket.blob(target_name)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+    target_name =  blobs[get_package_index] #Get the blob name
+    target_blob = bucket.blob(target_name)  #Get the right blob by filename
     print(target_blob)
     print(type(target_blob))
-    file_to_download = target_blob.download_to_filename(target_name)
+    #file_to_download = target_blob.download_to_filename(target_name)
+    #print("file_to_download TYPE: ", type(file_to_download))
     bytes = target_blob.download_as_bytes()
-    print("FILE TYPE: ",type(file_to_download))
+    #bytes.seek(0,0)
+    #print("FILE TYPE: ",type(file_to_download))
     print("BYTES TYPE: ",type(bytes))
+    #print("BYTES: \n\n",bytes)
+    bytes_as_file = BytesIO(bytes)
     #URL_to_download = 'https://storage.googleapis.com/ece-461-project-2-team-4.appspot.com/' + target_name
     #print(URL_to_download)
 
     
-    #return render_template('download_package_success.html', URL_to_download=URL_to_download)
-    return render_template('download_package_success.html')
+    #return fk.render_template('download_package_success.html', URL_to_download=URL_to_download)
+    #return fk.render_template('download_package_success.html')
+    return fk.send_file(bytes_as_file, as_attachment=True, attachment_filename=target_name)
 
 @app.route('/view-packages', methods=['GET', 'POST'])
 def viewPackages(curr_page = 1):
-    render_template('loading.html')
-    if request.method == 'POST':
-        curr_page = request.form['next_page']
+    fk.render_template('loading.html')
+    if fk.request.method == 'POST':
+        curr_page = fk.request.form['next_page']
     print("CURR PAGE1: ", curr_page)
     try:
         curr_page = int(curr_page)
@@ -128,7 +124,7 @@ def viewPackages(curr_page = 1):
             package_identifiers.append(blob_tuple)
 
 
-    return render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
+    return fk.render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -139,13 +135,29 @@ def upload():
     # Get the bucket that the file will be uploaded to.
     bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
 
-    uploaded_files = request.files.getlist('files')
+    if fk.request.method == 'POST':
+        # check if the post request has the file part
+        if 'files' not in fk.request.files:
+            
+            return fk.redirect(fk.request.url)
+        uploaded_files = fk.request.files.getlist('files')
+
+
+    
+    
     
     for uploaded_file in uploaded_files:
         
-        if not uploaded_file:
+        if not (uploaded_file):
             return 'No file uploaded.', 400
-        
+        if not (allowed_file(uploaded_file.filename)):
+            return 'Unallowed file type uploaded.', 400            
+        if uploaded_file.filename == '':
+            return 'No selected file', 400 
+
+        uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
+        if uploaded_file.filename == '':
+            return 'secure_filename broke and returned an empty filename', 400 
 
 
         # Create a new blob and upload the file's content.
@@ -163,7 +175,7 @@ def upload():
 
     # The public URL can be used to directly access the uploaded file via HTTP.
     #return blob.public_url
-    return render_template('upload_package_success.html')
+    return fk.render_template('upload_package_success.html')
 
 
 @app.errorhandler(500)

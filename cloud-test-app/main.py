@@ -5,6 +5,9 @@ import os
 from typing import Union
 from google.cloud import storage
 from google.cloud.storage import client
+import pymysql
+import json
+import scoresDatabase
 
 app = Flask(__name__, template_folder="templates")
 
@@ -16,14 +19,39 @@ def round_up(dividend, divisor) -> int:
     output = int(dividend // divisor + (dividend % divisor > 0))
     return output
 
+def parseJson(filename):
+    with open(filename) as json_file:
+        data = json.load(json_file)
+
+    return data
+
+def connecttoDB():
+    db_user = os.environ['CLOUD_SQL_USERNAME']
+    db_password = os.environ['CLOUD_SQL_PASSWORD']
+    db_name = os.environ['CLOUD_SQL_DATABASE_NAME']
+    db_connection_name = os.environ['CLOUD_SQL_CONNECTION_NAME']
+    db_address = os.environ['CLOUD_SQL_IP']
+    unix_socket = '/cloudsql/{}'.format(db_connection_name)
+
+    try:
+        if os.environ.get('GAE_ENV') == 'standard':
+            return pymysql.connect(unix_socket=unix_socket, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+        else:
+            return pymysql.connect(host=db_address, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+    except:
+        pass
+    
+    pass
+
+
 @app.route('/')
 def root():
     # For the sake of example, use static information to inflate the template.
     # This will be replaced with real information in later steps.
-  #  dummy_times = [datetime.datetime(2018, 1, 1, 10, 0, 0),
-  #                 datetime.datetime(2018, 1, 2, 10, 30, 0),
-  #                 datetime.datetime(2018, 1, 3, 11, 0, 0),
-  #                 ]
+    #  dummy_times = [datetime.datetime(2018, 1, 1, 10, 0, 0),
+    #                 datetime.datetime(2018, 1, 2, 10, 30, 0),
+    #                 datetime.datetime(2018, 1, 3, 11, 0, 0),
+    #                 ]
 
     return render_template('root.html')
 
@@ -31,10 +59,10 @@ def root():
 def rootSQRD():
     # For the sake of example, use static information to inflate the template.
     # This will be replaced with real information in later steps.
- #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
- #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
- #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
-  #                 ]
+    #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
+    #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
+    #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
+    #                 ]
 
     return render_template('root.html')
 
@@ -42,21 +70,33 @@ def rootSQRD():
 def uploadPackage():
     # For the sake of example, use static information to inflate the template.
     # This will be replaced with real information in later steps.
- #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
- #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
- #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
-  #                 ]
+    #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
+    #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
+    #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
+    #                 ]
+    conn = connecttoDB()
+    cursor = conn.cursor()
+    data = parseJson("output.json")
 
+    try:
+        for entry in data["scores"]:
+            cursor.execute("INSERT INTO scores_table (url, ramp_up_score, correctness_score, bus_factor_score, responsive_maintainer_score, license_score, dependency_score) VALUES(%s, %s, %s, %s, %s, %s, %s)", (entry["url"], entry["rampup"], entry["correctness"], entry["busfactor"], entry["contributors"], entry["license"], entry["dependency"]))
+
+        conn.commit()
+        pass
+    except:
+        pass
+    
     return render_template('upload_package.html')
 
 @app.route('/retrieve-package')
 def retrievePackage():
     # For the sake of example, use static information to inflate the template.
     # This will be replaced with real information in later steps.
- #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
- #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
- #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
-  #                 ]
+    #   dummy_times = [datetime.datetime(2000, 5, 25, 10, 0, 0),
+    #                  datetime.datetime(2000, 5, 25, 10, 30, 0),
+    #                  datetime.datetime(2000, 5, 25, 11, 0, 0),
+    #                 ]
 
     return render_template('retrieve_package.html')
 

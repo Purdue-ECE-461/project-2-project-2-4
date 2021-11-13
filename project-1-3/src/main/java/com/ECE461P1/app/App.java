@@ -1,10 +1,14 @@
 package com.ECE461P1.app;
 
+import com.ECE461P1.app.scores.JsonWriteHandler;
 import com.ECE461P1.app.scores.Score;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -19,6 +23,11 @@ public class App
 
   public static void main (String[] args) {
     Url[] urls = parseURLS(new File(args[0]));
+    JsonArrayBuilder arrBuilder = Json.createArrayBuilder();
+    JsonObjectBuilder jObj = Json.createObjectBuilder();
+    JsonWriteHandler jWriter = new JsonWriteHandler("output.json");
+
+
     for (Url url : urls){
       if(url.correctnessScore == null){continue;}//com.ECE461P1.app.scores where not initalized because http request limit has been reached
       url.correctnessScore.getCorrectnessScore();
@@ -26,13 +35,24 @@ public class App
       url.busScore.getBusFactor();
       url.licenseScore.getLicenseScore();
       url.rampScore.getRampUpTimeScore();
+      url.depScore.getDependencyRatio();
     }
     logger.warn("starting");
     
     System.out.println("\nURL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE");
-    Arrays.sort(urls, Comparator.comparingInt(url ->
-      (url!=null && url.correctnessScore!=null) ? (int) url.calcNetScore() : 0
-    ));
+//    Arrays.sort(urls, Comparator.comparingInt(url ->
+//      (url!=null && url.correctnessScore!=null) ? (int) url.calcNetScore() : 0
+//    ));
+    for (Url url : urls){
+      url.calcNetScore();
+      arrBuilder.add(url.getJObj());
+    }
+    jObj.add("Scores", arrBuilder.build());
+    jWriter.writeObject(jObj.build());
+
+//    if (url!=null && url.correctnessScore!=null) {
+//      System.out.println();
+//    }
     for (Url url : urls) {System.out.println(url);}
   }
   public static Url[] parseURLS(File urlFile) {

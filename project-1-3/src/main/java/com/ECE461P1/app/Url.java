@@ -2,6 +2,9 @@ package com.ECE461P1.app;
 
 import com.ECE461P1.app.scores.*;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,7 +13,7 @@ import java.util.regex.PatternSyntaxException;
 public class Url {
    String orgUrl = "";
    String orgDomain = "";
-  public String ownerName = ""; //TODO: permission levels
+  public String ownerName = "";
   public String repoName = "";
   String apiUrl = "";
   float netScore = 0.0f;
@@ -20,31 +23,38 @@ public class Url {
   RampUpTime rampScore;
   License licenseScore;
   Responsiveness responseScore;
-  JsonWriteHandler jwHandler;
+  JsonObjectBuilder jObj;
   DependencyRatio depScore;
 
 
     public Url(String _url){
-    orgUrl = _url;
+      orgUrl = _url;
 
-    boolean parseCheck = parseUrl(orgUrl);
-    if (!parseCheck) {
-      System.out.println("There was an error parsing the url: " + orgUrl);
-      return;
-    }
+      boolean parseCheck = parseUrl(orgUrl);
+      if (!parseCheck) {
+        System.out.println("There was an error parsing the url: " + orgUrl);
+        return;
+     }
 
-    jwHandler = new JsonWriteHandler("output.txt");
-    s = new Score(ownerName,repoName);
-    apiUrl = s.getApi();
-    float score = s.checkExistence();
-    if(score == -1.0f){return;}
+      jObj = Json.createObjectBuilder();
+      s = new Score(ownerName,repoName);
+      apiUrl = s.getApi();
+      float score = s.checkExistence();
+      if(score == -1.0f){return;}
 
-    busScore = new BusFactor(ownerName, repoName);
-    correctnessScore = new Correctness(ownerName, repoName);
-    licenseScore = new License(ownerName, repoName);
-    rampScore = new RampUpTime(ownerName, repoName);
-    responseScore = new Responsiveness(ownerName, repoName);
-    depScore = new DependencyRatio(ownerName, repoName);
+      busScore = new BusFactor(ownerName, repoName);
+      correctnessScore = new Correctness(ownerName, repoName);
+      licenseScore = new License(ownerName, repoName);
+      rampScore = new RampUpTime(ownerName, repoName);
+      responseScore = new Responsiveness(ownerName, repoName);
+      depScore = new DependencyRatio(ownerName, repoName);
+
+//    jObj.addUrlItem("BusScore", busScore.getScore());
+//    jObj.addUrlItem("CorrectnessScore", correctnessScore.getScore());
+//    jObj.addUrlItem("LicenseScore", licenseScore.getScore());
+//    jObj.addUrlItem("rampScore", rampScore.getScore());
+//    jObj.addUrlItem("responseScore", responseScore.getScore());
+//    jObj.addUrlItem("depScore", depScore.getScore());
   }
   public float getBusScore() {
     busScore.getBusFactor();
@@ -59,29 +69,36 @@ public class Url {
   public String getAPIUrl(){
     return apiUrl;
   }
+  public JsonObject getJObj() {
+    return jObj.build();
+  }
   public float calcNetScore(){
     netScore = (float) 0.3 * correctnessScore.getScore();
-    jwHandler.addUrlItem("correctnessScore", correctnessScore.getScore());
+    jObj.add("correctnessScore", correctnessScore.getScore());
 
     netScore += (float) 0.25 * rampScore.getScore();
-    jwHandler.addUrlItem("rampScore", rampScore.getScore());
+    jObj.add("rampScore", rampScore.getScore());
 
     netScore += (float) 0.2 * responseScore.getScore();
-    jwHandler.addUrlItem("responseScore", responseScore.getScore());
+    jObj.add("responseScore", responseScore.getScore());
 
     netScore += (float) 0.15 * depScore.getScore();
-    jwHandler.addUrlItem("depScore", depScore.getScore());
+    jObj.add("depScore", depScore.getScore());
 
     netScore += (float) 0.1 * busScore.getScore();
-    jwHandler.addUrlItem("busScore", busScore.getScore());
+    jObj.add("busScore", busScore.getScore());
 
     netScore *= licenseScore.getScore();
-    jwHandler.addUrlItem("licenseScore", licenseScore.getScore());
+    jObj.add("licenseScore", licenseScore.getScore());
 
-    jwHandler.addUrlItem("netScore", netScore);
+    jObj.add("netScore", netScore);
+//    jObj.addToArray();
+//    jObj.write();
 
     return netScore;
   }
+
+
   public String toString(){
     if(correctnessScore == null){//com.ECE461P1.app.scores where not initalized because http request limit has been reached
       String str = "" + orgUrl + " 0.0 0.0 0.0 0.0 0.0 0.0";

@@ -18,13 +18,13 @@ class JsonWriteHandlerTest {
     void write() {
         JsonWriteHandler jwHandler = new JsonWriteHandler("output.txt");
 
-        jwHandler.addUrlItem("url", "url.com");
-        jwHandler.addUrlItem("busfactor", 1);
-        jwHandler.addToArray();
-        jwHandler.addUrlItem("url", "url.com");
-        jwHandler.addUrlItem("busfactor", 1);
-        jwHandler.addToArray();
-        jwHandler.write();
+//        jwHandler.addUrlItem("url", "url.com");
+//        jwHandler.addUrlItem("busfactor", 1);
+//        jwHandler.addToArray();
+//        jwHandler.addUrlItem("url", "url.com");
+//        jwHandler.addUrlItem("busfactor", 1);
+//        jwHandler.addToArray();
+//        jwHandler.write();
 
     }
 }

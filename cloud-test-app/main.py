@@ -14,8 +14,12 @@ from google.cloud.storage import client
 from werkzeug.utils import redirect, secure_filename
 import pymysql
 import json
+#import main_api
+import base64
 
 app = fk.Flask(__name__, template_folder="templates")
+api = fkr.Api(app)
+
 
 # Configure this environment variable via app.yaml
 CLOUD_STORAGE_BUCKET = os.environ['CLOUD_STORAGE_BUCKET']
@@ -41,13 +45,14 @@ def connecttoDB():
     db_password = os.environ['CLOUD_SQL_PASSWORD']
     db_name = os.environ['CLOUD_SQL_DATABASE_NAME']
     db_connection_name = os.environ['CLOUD_SQL_CONNECTION_NAME']
-    db_address = os.environ['CLOUD_SQL_IP']
+    #db_address = os.environ['CLOUD_SQL_IP']
     unix_socket = '/cloudsql/{}'.format(db_connection_name)
 
     try:
         if os.environ.get('GAE_ENV') == 'standard':
             return pymysql.connect(unix_socket=unix_socket, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
         else:
+            db_address = os.environ['CLOUD_SQL_IP']
             return pymysql.connect(host=db_address, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
     except:
         pass
@@ -56,7 +61,7 @@ def connecttoDB():
 
 
 @app.route('/')
-def root():
+def homepage():
 
 
     return fk.render_template('root.html')
@@ -233,6 +238,20 @@ def upload():
             return 'secure_filename broke and returned an empty filename', 400 
 
 
+        #Upload rate information SQL Database
+        conn = connecttoDB()
+        cursor = conn.cursor()
+        data = parseJson("output.json")
+        try:
+            for entry in data["scores"]:
+                cursor.execute("INSERT INTO scores_table (url, ramp_up_score, correctness_score, bus_factor_score, responsive_maintainer_score, license_score, dependency_score) VALUES(%s, %s, %s, %s, %s, %s, %s)", (entry["url"], entry["rampup"], entry["correctness"], entry["busfactor"], entry["contributors"], entry["license"], entry["dependency"]))
+
+            conn.commit()
+            pass
+        except:
+            pass
+
+
         # Create a new blob and upload the file's content.
         blob = bucket.blob(uploaded_file.filename)
 
@@ -258,6 +277,20 @@ def server_error(e: Union[Exception, int]) -> str:
     An internal error occurred: <pre>{}</pre>
     See logs for full stacktrace.
     """.format(e), 500
+
+
+
+
+class UploadPackage(fkr.Resource):
+    def post(self):
+        some_json = fkr.request.get_json()
+        file_string = some_json['data']['Content']
+        file_object = base64.b64encode(file_string.read()).decode('utf-8')
+        print(file_object)
+        print(type(file_object))
+
+api.add_resource(UploadPackage, '/api/upload')
+
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App

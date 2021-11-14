@@ -22,7 +22,7 @@ env_variables:
     CLOUD_SQL_PASSWORD: project2database
     CLOUD_SQL_DATABASE_NAME: url_metric_scores
     CLOUD_SQL_CONNECTION_NAME: ece-461-project-2-team-4:us-central1:metric-score-storage
-    #CLOUD_SQL_IP: 35.238.104.102
+    #CLOUD_SQL_IP: 34.123.253.38
     #CLOUD_SQL_CONNECTION_PORT: 5432
 
 # beta_settings:

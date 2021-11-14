@@ -17,6 +17,7 @@ import pymysql
 import json
 #import main_api
 import base64
+import zipfile
 
 app = fk.Flask(__name__, template_folder="templates")
 api = fkr.Api(app)
@@ -53,7 +54,8 @@ def connecttoDB():
         if os.environ.get('GAE_ENV') == 'standard':
             return pymysql.connect(unix_socket=unix_socket, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
         else:
-            db_address = os.environ['CLOUD_SQL_IP']
+            #db_address = os.environ['CLOUD_SQL_IP']
+            db_address = '34.123.253.38'
             return pymysql.connect(host=db_address, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
     except:
         pass
@@ -91,7 +93,7 @@ def resetConfirmed():
 
 @app.route('/java-version')
 def javaVersion():
-    output2 = subprocess.run(["./Java_install/jdk-11.0.13/bin/java", "-jar", "Main.jar"], capture_output=True) # We want this to be a string that looks like json
+    output2 = subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "Main.jar"], capture_output=True) # We want this to be a string that looks like json
 
     version2 = output2.stdout.decode("utf-8")
     version3 = output2.stderr.decode("utf-8")
@@ -205,6 +207,21 @@ def viewPackages(curr_page = 1):
 
     return fk.render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
 
+
+
+
+def format_json_string(json_as_string)->str:
+    jsonData = json.loads(json_as_string)
+    data = {}
+    data['repository'] = jsonData['repository']
+    data['dependencies'] = list(jsonData['dependencies'].values())
+    return str(data)
+
+
+
+
+
+
 @app.route('/upload', methods=['POST'])
 def upload():
     """Process the uploaded file and upload it to Google Cloud Storage."""
@@ -237,8 +254,27 @@ def upload():
         uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
         if uploaded_file.filename == '':
             return 'secure_filename broke and returned an empty filename', 400 
+        
+        ############################ CHANGE LATER
+        zip_file = zipfile.ZipFile(uploaded_file)
+        zip_file_jsons = []
+        names_in_zip = zip_file.namelist()
+        for curr_file in names_in_zip:
+            if curr_file.endswith('json') and ('package.json' in curr_file):
+                print(curr_file, "\n\n\n")
+                zip_file_jsons.append(zip_file.open(curr_file).read())
+
+        print(type(zip_file_jsons[0]))
+        print(zip_file_jsons)
+        #print(zip_file_jsons[0].decode("utf-8"))
+        json_as_string = zip_file_jsons[0].decode("utf-8")
+        print(json_as_string)
+        print('BLANK LINES\n\n\n\n')
+
+        print("SUBPROCESS OUTPUT:   ", subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True))
 
 
+        ################################
         #Upload rate information SQL Database
         conn = connecttoDB()
         cursor = conn.cursor()

@@ -4,6 +4,7 @@ import sys
 import json
 import flask as fk
 import flask_restful as fkr
+from flask_restful import reqparse
 import logging
 import os
 from io import BytesIO
@@ -283,8 +284,32 @@ def server_error(e: Union[Exception, int]) -> str:
 
 class UploadPackage(fkr.Resource):
     def post(self):
+        print("In POST")
         some_json = fkr.request.get_json()
+        #some_json = reqparse.RequestParser().parse_args()
+        print(some_json)
+        print("HERE")
+        #print("REST ",fkr.request.get_json())
+        #print("FLASK ",fk.request.get_json())
+        print(type(some_json))
         file_string = some_json['data']['Content']
+        print("FILE STRING: ", file_string)
+        #file_object = base64.b64encode(file_string.read()).decode('utf-8')
+        ##print(file_object)
+        #print(type(file_object))
+        return {'data': file_string}
+
+    def options(self):
+        print("In Options")
+        some_json1 = fkr.request.get_json()
+        some_json2 = reqparse.RequestParser().parse_args()
+        #print("REST ",fkr.request.get_json(force=True))
+        #print("FLASK ",fk.request.get_json(force=True))
+        print(type(some_json1))
+        print(some_json1)
+        print(type(some_json2))
+        print(some_json2)
+        file_string = some_json1['data']['Content']
         file_object = base64.b64encode(file_string.read()).decode('utf-8')
         print(file_object)
         print(type(file_object))

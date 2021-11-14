@@ -1,74 +1,72 @@
 package com.ECE461P1.app;
 
-import com.ECE461P1.app.scores.JsonWriteHandler;
 import com.ECE461P1.app.scores.Score;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.eclipse.jgit.api.Git;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.List;
 import java.util.Scanner;
 
 public class App
 {
   public static Git git;
-  static final Logger logger = LoggerFactory.getLogger(Score.class);
+//  static final Logger logger = LoggerFactory.getLogger(Score.class);
 
   public static void main (String[] args) {
-    Url[] urls = parseURLS(new File(args[0]));
-    JsonArrayBuilder arrBuilder = Json.createArrayBuilder();
-    JsonObjectBuilder jObj = Json.createObjectBuilder();
-    JsonWriteHandler jWriter = new JsonWriteHandler("output.json");
 
-
-    for (Url url : urls){
-      if(url.correctnessScore == null){continue;}//com.ECE461P1.app.scores where not initalized because http request limit has been reached
-      url.correctnessScore.getCorrectnessScore();
-      url.responseScore.getResponsivenessScore();
-      url.busScore.getBusFactor();
-      url.licenseScore.getLicenseScore();
-      url.rampScore.getRampUpTimeScore();
-      url.depScore.getDependencyRatio();
+    StringBuilder jsonInput = new StringBuilder();
+    for (String s : args) {
+      jsonInput.append(s);
     }
-    logger.warn("starting");
-    
-    System.out.println("\nURL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE");
-//    Arrays.sort(urls, Comparator.comparingInt(url ->
-//      (url!=null && url.correctnessScore!=null) ? (int) url.calcNetScore() : 0
-//    ));
-    for (Url url : urls){
-      url.calcNetScore();
-      arrBuilder.add(url.getJObj());
-    }
-    jObj.add("Scores", arrBuilder.build());
-    jWriter.writeObject(jObj.build());
+    String a = jsonInput.toString().strip();
+//    System.out.println(jsonInput.toString());
+    packageJson convertedObject = new Gson().fromJson(a, packageJson.class);
 
-//    if (url!=null && url.correctnessScore!=null) {
-//      System.out.println();
-//    }
-    for (Url url : urls) {System.out.println(url);}
+    JSONObject obj = new JSONObject(jsonInput);
+    Gson gson = new Gson();
+    System.out.println(gson.toJson(convertedObject).toString());
+
+
+
+    //    Gson gson = new Gson();
+//    JsonParser parser = new JsonParser();
+//    JsonObject object = (JsonObject) parser.parse(a);// response will be the json String
+////    YourPojo emp = gson.fromJson(object, YourPojo.class);
+
+//    RepoHandler repo = new RepoHandler(obj);
+
+
+//    repo.correctnessScore.getCorrectnessScore();
+//    repo.responseScore.getResponsivenessScore();
+//    repo.busScore.getBusFactor();
+//    repo.licenseScore.getLicenseScore();
+//    repo.rampScore.getRampUpTimeScore();
+//    repo.depScore.getDependencyRatio();
+//
+//    repo.calcNetScore();
+//    JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+//    arrayBuilder.add(repo.getJObj());
+//    jObj.add("Scores", arrBuilder.build());
+//    jWriter.writeObject(jObj.build()); //TODO
+
   }
-  public static Url[] parseURLS(File urlFile) {
-    ArrayList<Url> urls = new ArrayList<Url>();
-    Scanner sc;
-    try{
-      sc = new Scanner(urlFile);
-      while (sc.hasNextLine()){
-        urls.add(new Url(sc.nextLine()));
-      }
-    }catch(FileNotFoundException e){
-      System.out.println("File not Found: " + urlFile);
-      return null;
-    }
-    sc.close();
-    Url[] arr = urls.toArray(new Url[urls.size()]);
-    return arr;
+}
+
+class packageJson {
+//  public String dependencies;
+  public String repository;
+  public List<String> dependencies;
+
+  public packageJson() {
   }
 }

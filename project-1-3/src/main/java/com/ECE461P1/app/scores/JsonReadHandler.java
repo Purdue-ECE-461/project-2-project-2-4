@@ -5,7 +5,11 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,22 +19,23 @@ import static javax.json.JsonValue.ValueType.STRING;
 public class JsonReadHandler {
     static final Logger logger = LoggerFactory.getLogger(JsonReadHandler.class);
 
-    JsonObject obj;
+    JSONObject obj;
 
 
-    public JsonReadHandler(String filename){
-        logger.debug("New JsonHandler");
-        JsonReader reader;
-        try {
-            reader = Json.createReader(new FileReader(filename));
-            obj = reader.readObject();
-            logger.debug("{}", obj);
-            reader.close();
-        }
-        catch (Exception e){
-            logger.debug("{}", e);
-            obj = null;
-        }
+    public JsonReadHandler(JSONObject jsonObject){
+//        logger.debug("New JsonHandler");
+        obj = jsonObject;
+//        JsonReader reader;
+//        try {
+//            reader = Json.createReader(new FileReader(filename));
+//            obj = reader.readObject();
+//            logger.debug("{}", obj);
+//            reader.close();
+//        }
+//        catch (Exception e){
+//            logger.debug("{}", e);
+//            obj = null;
+//        }
     }
 
     public Object getField(String fieldName){
@@ -38,33 +43,33 @@ public class JsonReadHandler {
         return obj.get(fieldName);
     }
 
-    public Collection<javax.json.JsonValue> getFieldValues(String fieldName) {
-        if (obj == null) return null;
-        JsonObject field = (JsonObject) obj.get(fieldName);
-        logger.debug("getFieldValues returns: {}", field);
-        if (field == null) {
-            return null;
+    public Collection<String> getFieldValues(String fieldName) {
+        if (obj.optJSONArray(fieldName) == null) return null;
+//        if (obj == null) return null;
+        Collection<String> vals = null;
+        JSONArray arr = obj.getJSONArray(fieldName);
+        for (int i = 0; i < obj.getJSONArray(fieldName).length(); i++) {
+            vals.add(arr.getString(i));
         }
-        return field.values();
+
+        return vals;
     }
 
     public String getURL() {
-        JsonValue jGet = obj.get("repository");
-        try {
-            if (jGet.getValueType() == STRING) {
-                System.out.println(jGet.toString());
-                return jGet.toString();
-            } else if (jGet.getValueType() == OBJECT) {
-                JsonObject a = (JsonObject) jGet;
-                String b = a.get("url").toString();
-//                System.out.println(b);
-                return b; //TODO: REGEX
-                //TODO: 2 versions of package.json
-            }
+        final Pattern p = Pattern.compile(".*github.com\\/([\\w|\\d|-|_|.]*\\/[\\w|\\d|-|_|.]*).git");
+
+        String url = obj.optString("repository");
+
+        if (url == null) {
+            JSONObject a = obj.optJSONObject("repository");
+            if (a == null) return null;
+            url = a.optString("url");
+            if (url == null) return null;
         }
-        catch (Exception e) {
-            System.out.println("Exception: " + e.toString());
-        }
-        return "";
+
+        url = url.replaceAll("\"", "");
+        Matcher m = p.matcher(url);
+        m.find();
+        return m.group(1);
     }
 }

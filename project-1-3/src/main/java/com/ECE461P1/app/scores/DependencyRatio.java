@@ -20,32 +20,32 @@ public class DependencyRatio extends Score{
     }
 
 
-    public float getDependencyRatio() {
-        JsonReadHandler handler = new JsonReadHandler(dirPath);
-        Collection<JsonValue> jsonVals = handler.getFieldValues("dependencies");
-        try {
-            float pinnedDeps = (float) findNumPinnedDeps(jsonVals);
-            float numDeps = (float) findNumDeps(jsonVals);
-            return (float) pinnedDeps / numDeps;
-        } catch (Exception e) {
-            return (float) 0;
-        }
-    }
+//    public float getDependencyRatio() {
+//        JsonReadHandler handler = new JsonReadHandler(dirPath);
+//        Collection<String> versions = handler.getFieldValues("dependencies");
+//        try {
+//            float pinnedDeps = (float) findNumPinnedDeps(jsonVals);
+//            float numDeps = (float) findNumDeps(jsonVals);
+//            return (float) pinnedDeps / numDeps;
+//        } catch (Exception e) {
+//            return (float) 0;
+//        }
+//    }
 
-    @Override
-    public float getScore() {
-        score = getDependencyRatio();
-        return score;
-    }
+//    @Override
+//    public float getScore() {
+//        score = getDependencyRatio();
+//        return score;
+//    }
 
 
-    int findNumPinnedDeps(Collection<JsonValue> jsonVals){
-        if (jsonVals == null) return 1;
-        if (jsonVals.size() == 0) return 1;
+    int findNumPinnedDeps(Collection<String> versionList){
+        if (versionList == null) return 1;
+        if (versionList.size() == 0) return 1;
         int count = 0;
-        Iterator<JsonValue> valIter = jsonVals.iterator();
+        Iterator<String> valIter = versionList.iterator();
         while(valIter.hasNext()){
-            String s = valIter.next().toString();
+            String s = valIter.next();
             s = s.substring( 1, s.length() - 1 );
 //            System.out.println(s);
             count += isMajMinPinned(s);
@@ -54,7 +54,7 @@ public class DependencyRatio extends Score{
         return count;
     }
 
-    int findNumDeps(Collection<JsonValue> jsonVals){
+    int findNumDeps(Collection<String> jsonVals){
         if (jsonVals == null) return 1;
         if (jsonVals.size() == 0) return 1;
         return jsonVals.size();

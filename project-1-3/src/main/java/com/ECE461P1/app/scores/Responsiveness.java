@@ -61,12 +61,15 @@ public class Responsiveness extends Score {
     int closedDay;
 
     try {
+      if (issueCountRepo.issues() == null) return 0;
       info = issueCountRepo.issues().search(Issues.Sort.UPDATED, Search.Order.DESC, qualifiers);
     } catch (IOException e) {
       System.out.println(e);
     }
 
     try {
+      try { info.iterator().next(); } catch (Exception e) {return 0;}
+//      if ( == null) return 0;
       createdDate = info.iterator().next().json().getString("created_at");
       closedDate = info.iterator().next().json().getString("closed_at");
     } catch (IOException e) {

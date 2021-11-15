@@ -17,5 +17,6 @@ project-1-3/.classpath
 *.html
 *.gif
 *.h
+*java_install.zip
 project-1-3/node-v16.13.0-darwin-x64/*
 project-1-3/apache-maven-3.8.3/*

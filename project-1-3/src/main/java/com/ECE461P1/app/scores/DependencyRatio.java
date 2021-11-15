@@ -1,5 +1,4 @@
 package com.ECE461P1.app.scores;
-import javax.json.JsonValue;
 import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.Iterator;
@@ -9,34 +8,40 @@ import java.util.Iterator;
 public class DependencyRatio extends Score{
 //    JsonHandler handler;
     String dirPath;
-    public DependencyRatio(String _owner, String _repo) {
-        super(_owner, _repo);
-        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json"; //TODO: replace with actual
-    }
-    public DependencyRatio(String _repoName) { //testing purposes
+    Collection<String> versionList;
+//    public DependencyRatio(String _owner, String _repo) {
+//        super(_owner, _repo);
+//        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json"; //TODO: replace with actual
+//    }
+    public DependencyRatio() { //testing purposes
         super();
-        repoName = _repoName;
-        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json";
+//        repoName = _repoName;
+//        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json";
+    }
+    public DependencyRatio(Collection<String> _versionList) {
+        super();
+        versionList = _versionList;
     }
 
 
-//    public float getDependencyRatio() {
-//        JsonReadHandler handler = new JsonReadHandler(dirPath);
-//        Collection<String> versions = handler.getFieldValues("dependencies");
-//        try {
-//            float pinnedDeps = (float) findNumPinnedDeps(jsonVals);
-//            float numDeps = (float) findNumDeps(jsonVals);
-//            return (float) pinnedDeps / numDeps;
-//        } catch (Exception e) {
-//            return (float) 0;
-//        }
-//    }
 
-//    @Override
-//    public float getScore() {
-//        score = getDependencyRatio();
-//        return score;
-//    }
+
+    public float getDependencyRatio() {
+//        JsonReadHandler handler = new JsonReadHandler(dirPath);
+        try {
+            float pinnedDeps = (float) findNumPinnedDeps(versionList);
+            float numDeps = (float) findNumDeps(versionList);
+            return (float) pinnedDeps / numDeps;
+        } catch (Exception e) {
+            return (float) 0;
+        }
+    }
+
+    @Override
+    public float getScore() {
+        score = getDependencyRatio();
+        return score;
+    }
 
 
     int findNumPinnedDeps(Collection<String> versionList){
@@ -50,13 +55,15 @@ public class DependencyRatio extends Score{
 //            System.out.println(s);
             count += isMajMinPinned(s);
         }
-
+//        System.out.println("pinned: " + count);
         return count;
     }
 
     int findNumDeps(Collection<String> jsonVals){
         if (jsonVals == null) return 1;
         if (jsonVals.size() == 0) return 1;
+//        System.out.println("size" + jsonVals.size());
+
         return jsonVals.size();
     }
 

@@ -1,9 +1,11 @@
 package com.ECE461P1.app;
 
+import com.ECE461P1.app.scores.PackageJson;
 import com.ECE461P1.app.scores.Score;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.jcabi.github.Repo;
 import org.eclipse.jgit.api.Git;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -30,28 +32,51 @@ public class App
     }
     String a = jsonInput.toString().strip();
 //    System.out.println(jsonInput.toString());
-    packageJson convertedObject = new Gson().fromJson(a, packageJson.class);
+    PackageJson packageJson = new Gson().fromJson(a, PackageJson.class);
 
-    JSONObject obj = new JSONObject(jsonInput);
-    Gson gson = new Gson();
-    System.out.println(gson.toJson(convertedObject).toString());
+//    JSONObject obj = new JSONObject(jsonInput);
+    // Gson gson = new Gson();
+    // System.out.println(gson.toJson(packageJson).toString());
 
 
 
-    //    Gson gson = new Gson();
 //    JsonParser parser = new JsonParser();
 //    JsonObject object = (JsonObject) parser.parse(a);// response will be the json String
 ////    YourPojo emp = gson.fromJson(object, YourPojo.class);
 
-//    RepoHandler repo = new RepoHandler(obj);
+    RepoHandler repo = new RepoHandler(packageJson);
+
+    RepoScores rScores = new RepoScores();
+
+    repo.correctnessScore.getCorrectnessScore();
+    repo.responseScore.getResponsivenessScore();
+    repo.busScore.getBusFactor();
+    repo.licenseScore.getLicenseScore();
+    repo.rampScore.getRampUpTimeScore();
+    repo.depScore.getDependencyRatio();
+    repo.calcNetScore();
+
+    rScores.correctnessScore = repo.correctnessScore.getScore();
+    rScores.responsivenessScore = repo.responseScore.getScore();
+    rScores.busFactor = repo.busScore.getScore();
+    rScores.licenseScore = repo.licenseScore.getScore();
+    rScores.rampUpTimeScore = repo.rampScore.getScore();
+    rScores.dependencyRatio = repo.depScore.getScore();
+    rScores.netScore = repo.calcNetScore();
+
+    rScores.url = repo.orgUrl;
+
+    RepoScoresParent rScoresParent = new RepoScoresParent();
+    List<RepoScores> rscoreslist = new ArrayList<RepoScores>();
+    rscoreslist.add(rScores);
+    rScoresParent.Scores = rscoreslist;
 
 
-//    repo.correctnessScore.getCorrectnessScore();
-//    repo.responseScore.getResponsivenessScore();
-//    repo.busScore.getBusFactor();
-//    repo.licenseScore.getLicenseScore();
-//    repo.rampScore.getRampUpTimeScore();
-//    repo.depScore.getDependencyRatio();
+    Gson gson = new Gson();
+
+
+    System.out.println(gson.toJson(rScoresParent));
+
 //
 //    repo.calcNetScore();
 //    JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
@@ -62,11 +87,24 @@ public class App
   }
 }
 
-class packageJson {
-//  public String dependencies;
-  public String repository;
-  public List<String> dependencies;
+class RepoScores{
+  String url;
+  float correctnessScore;
+  float responsivenessScore;
+  float busFactor;
+  float licenseScore;
+  float rampUpTimeScore;
+  float dependencyRatio;
+  float netScore;
 
-  public packageJson() {
+  public RepoScores() {
+  }
+
+}
+
+class RepoScoresParent{
+  List<RepoScores> Scores;
+  public RepoScoresParent() {
   }
 }
+

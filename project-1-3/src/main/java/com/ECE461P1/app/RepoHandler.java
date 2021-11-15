@@ -23,14 +23,16 @@ public class RepoHandler {
   JsonObjectBuilder jObj;
   DependencyRatio depScore;
   JsonReadHandler jReadHandler;
+  PackageJson repo;
 
 
-  public RepoHandler(JSONObject _repo) {
-    jReadHandler = new JsonReadHandler(_repo);
-    orgUrl = jReadHandler.getURL();
+  public RepoHandler(PackageJson _repo) {
+//    jReadHandler = new JsonReadHandler(_repo);
+    repo = _repo;
+    orgUrl = repo.getRepoPath();
     String[] strlist = orgUrl.split("\\/");
     ownerName = strlist[0];
-    repoName = strlist[1];
+    repoName  = strlist[1];
 //      orgUrl = _url;
 
 //      boolean parseCheck = parseUrl(orgUrl);
@@ -39,7 +41,7 @@ public class RepoHandler {
 //        return;
 //     }
 
-    jObj = Json.createObjectBuilder();
+//    jObj = Json.createObjectBuilder();
     s = new Score(ownerName, repoName);
     apiUrl = s.getApi();
     float score = s.checkExistence();
@@ -47,12 +49,15 @@ public class RepoHandler {
       return;
     }
 
-//    busScore = new BusFactor(ownerName, repoName);
-//    correctnessScore = new Correctness(ownerName, repoName);
-//    licenseScore = new License(ownerName, repoName);
-//    rampScore = new RampUpTime(ownerName, repoName);
-//    responseScore = new Responsiveness(ownerName, repoName);
-//    depScore = new DependencyRatio(ownerName, repoName);
+    busScore = new BusFactor(ownerName, repoName);
+    correctnessScore = new Correctness(ownerName, repoName);
+    licenseScore = new License(ownerName, repoName);
+    rampScore = new RampUpTime(ownerName, repoName);
+    responseScore = new Responsiveness(ownerName, repoName);
+    depScore = new DependencyRatio(repo.dependencies);
+//    float depScoreNum = depScore.getScore();
+
+//    System.out.println("Dependency score: " + score);
   }
 
   public float getBusScore() {
@@ -78,24 +83,26 @@ public class RepoHandler {
 
   public float calcNetScore() {
     netScore = (float) 0.3 * correctnessScore.getScore();
-    jObj.add("correctnessScore", correctnessScore.getScore());
+//    System.out.println(netScore);
+//    jObj.add("correctnessScore", correctnessScore.getScore());
 
     netScore += (float) 0.25 * rampScore.getScore();
-    jObj.add("rampScore", rampScore.getScore());
+//    System.out.println(netScore);
+
+//    jObj.add("rampScore", rampScore.getScore());
 
     netScore += (float) 0.2 * responseScore.getScore();
-    jObj.add("responseScore", responseScore.getScore());
+//    System.out.println(netScore);
 
     netScore += (float) 0.15 * depScore.getScore();
-    jObj.add("depScore", depScore.getScore());
+//    System.out.println(netScore);
 
     netScore += (float) 0.1 * busScore.getScore();
-    jObj.add("busScore", busScore.getScore());
+//    System.out.println(netScore);
 
     netScore *= licenseScore.getScore();
-    jObj.add("licenseScore", licenseScore.getScore());
+//    System.out.println(netScore);
 
-    jObj.add("netScore", netScore);
 //    jObj.addToArray();
 //    jObj.write();
 

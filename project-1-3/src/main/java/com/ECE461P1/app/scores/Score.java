@@ -38,6 +38,7 @@ public class Score {
       gitToken = System.getenv("GITHUB_TOKEN");
       gh = getGithub(gitToken);
   }
+
   public Score() {
       ownerName = "";
       repoName = "";

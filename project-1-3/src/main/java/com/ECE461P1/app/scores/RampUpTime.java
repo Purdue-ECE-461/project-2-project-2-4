@@ -35,7 +35,7 @@ public class RampUpTime extends Score {
       info = readmeRepo.json();
       return (float) info.getInt("size");
     } catch (Exception e) {
-      System.out.println(e);
+//      System.out.println(e);
       return 0.0f;
     }
   }

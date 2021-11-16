@@ -1,9 +1,13 @@
 package com.ECE461P1.app.scores;
 
 import com.jcabi.github.*;
+import org.json.*;
 
 import javax.json.JsonObject;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.util.EnumMap;
 
 public class Responsiveness extends Score {
@@ -57,12 +61,15 @@ public class Responsiveness extends Score {
     int closedDay;
 
     try {
+      if (issueCountRepo.issues() == null) return 0;
       info = issueCountRepo.issues().search(Issues.Sort.UPDATED, Search.Order.DESC, qualifiers);
     } catch (IOException e) {
       System.out.println(e);
     }
 
     try {
+      try { info.iterator().next(); } catch (Exception e) {return 0;}
+//      if ( == null) return 0;
       createdDate = info.iterator().next().json().getString("created_at");
       closedDate = info.iterator().next().json().getString("closed_at");
     } catch (IOException e) {
@@ -79,7 +86,9 @@ public class Responsiveness extends Score {
     System.out.println("Calculating responsiveness score...");
     Github gh = getGithub();
     Repo issueCountRepo = getJgitRepo();
-    
+//    Repo issueCountRepo = gh.repos()
+//            .get("https://api.github.com/search/issues?q=repo:" + ownerName
+//                    + "/" + repoName + "+type:issue+state:closed");
     float responsivenessScore = 0.0f;
     float openIssueCount = openIssueCountHelper(issueCountRepo);
     //System.out.println(openIssueCount);
@@ -94,6 +103,34 @@ public class Responsiveness extends Score {
     
     score = responsivenessScore;
     return responsivenessScore;
+  }
+
+  public HttpURLConnection makeRespUrlConn(String path){
+    try {
+
+       HttpURLConnection conn =  makeHttpConnection(path);
+//      conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+      int responseCode = conn.getResponseCode();
+//      System.out.println("\nSending 'GET' request to URL : " + url);
+      System.out.println("Response Code : " + responseCode);
+      BufferedReader in = new BufferedReader(
+              new InputStreamReader(conn.getInputStream()));
+      String inputLine;
+      StringBuffer response = new StringBuffer();
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+      //print in String
+      System.out.println(response.toString());
+      JSONArray myResponse = new JSONArray(response.toString());
+      myResponse.getString(1);
+//      System.out.println(count);
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public static void main (String[] args) {

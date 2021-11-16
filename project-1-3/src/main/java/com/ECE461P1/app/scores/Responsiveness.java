@@ -83,7 +83,7 @@ public class Responsiveness extends Score {
   }
 
   public float getResponsivenessScore () {
-    System.out.println("Calculating responsiveness score...");
+//    System.out.println("Calculating responsiveness score...");
     Github gh = getGithub();
     Repo issueCountRepo = getJgitRepo();
 //    Repo issueCountRepo = gh.repos()

@@ -13,7 +13,7 @@ public class License extends Score {
   }
 
   public float getLicenseScore () {
-    System.out.println("Calculating license score...");
+//    System.out.println("Calculating license score...");
     
     Repo licenseRepo = getJgitRepo();
     JsonObject info = null;

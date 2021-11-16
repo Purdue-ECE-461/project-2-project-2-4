@@ -109,7 +109,7 @@ public class RampUpTime extends Score {
   }
 
   public float getRampUpTimeScore () {
-    System.out.println("Calculating ramp up time score...");
+//    System.out.println("Calculating ramp up time score...");
 //    Github gh = getGithub();
     
     float readmeSize = readmeHelper();

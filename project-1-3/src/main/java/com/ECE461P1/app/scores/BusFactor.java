@@ -15,7 +15,7 @@ public class BusFactor extends Score {
 
 
   public void getBusFactor() {
-    System.out.println("Calculating bus factor score...");
+//    System.out.println("Calculating bus factor score...");
     try {
       //jcabi does not implement jsonArrays, using HttpURLConnection directly instead
 //      URL contributorsUrl = new URL(apiUrl + "/contributors");
@@ -32,7 +32,7 @@ public class BusFactor extends Score {
         rd.close();
 //      }
     } catch (Exception e){
-      System.out.println("Exception in getBusFactor: " + e);
+//      System.out.println("Exception in getBusFactor: " + e);
     }
 
     score = ((i >= 6) ? 1 : ((float) i / 6));

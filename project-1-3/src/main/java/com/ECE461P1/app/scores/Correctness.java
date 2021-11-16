@@ -82,7 +82,7 @@ public class Correctness extends Score {
   }
   public void getCorrectnessScore(){
     int count = 0;
-    System.out.println("Calculating correctness score...");
+//    System.out.println("Calculating correctness score...");
     runClone();
     try (Stream<Path> walk = Files.walk(Paths.get(repoClone.toString()))) {
       List<String> result = walk.map(x -> x.toString()).filter(f -> (f.contains("test") & (f.endsWith(".js") || f.endsWith(".json")))).collect(Collectors.toList());
@@ -90,7 +90,7 @@ public class Correctness extends Score {
         if (!(r==null || r.trim().isEmpty())){count++;}
       }
 	  } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
       score = -1.0f;
       return;
 	  }

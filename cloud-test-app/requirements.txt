@@ -1,0 +1,7 @@
+Flask
+flask-restful
+google-cloud-storage
+psycopg2
+psycopg2-binary
+SQLAlchemy
+PyMySQL

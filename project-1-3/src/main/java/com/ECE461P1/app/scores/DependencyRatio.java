@@ -51,7 +51,7 @@ public class DependencyRatio extends Score{
         Iterator<String> valIter = versionList.iterator();
         while(valIter.hasNext()){
             String s = valIter.next();
-            s = s.substring( 1, s.length() - 1 );
+//            s = s.substring( 1, s.length() - 1 );
 //            System.out.println(s);
             count += isMajMinPinned(s);
         }

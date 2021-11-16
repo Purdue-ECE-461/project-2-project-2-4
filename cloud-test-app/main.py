@@ -69,15 +69,30 @@ def format_json_string(json_as_string)->str:
     jsonData = json.loads(json_as_string)
     data = {}
     data['repository'] = jsonData['repository']
-    data['dependencies'] = list(jsonData['dependencies'].values())
-    #return str(data)
-    return data         #Changed return, double casting as string unneccessary and adding "\" to output
+    try:
+        data['dependencies'] = list(jsonData['dependencies'].values())
+    except:
+        pass
+        #data['dependencies'] = []
+    return str(data)
 
 def makeIdentifiers(packagejson) -> str:
     packagedict = json.loads(packagejson)
     ID = str(packagedict.get('name')) + str(packagedict.get('version'))
     name = str(packagedict.get('name'))
     return ID, name
+
+def zipLogic(zip):
+    #zip_IO = BytesIO(zip)
+    zip_file = zipfile.ZipFile(zip)
+    zip_file_jsons = []
+    names_in_zip = zip_file.namelist()
+    for curr_file in names_in_zip:
+        if curr_file.endswith('json') and ('package.json' in curr_file):
+            #print(curr_file, "\n\n\n")
+            zip_file_jsons.append(zip_file.open(curr_file).read())
+    zip_file.close()
+    return zip_file_jsons[0].decode("utf-8")
 
 @app.route('/')
 def homepage():
@@ -212,20 +227,33 @@ def upload():
         uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
         if uploaded_file.filename == '':
             return 'secure_filename broke and returned an empty filename', 400 
-        
+        #print(type(uploaded_file))
+        # blob = bucket.blob(uploaded_file.filename)
+
+        # blob.upload_from_string(
+        #     uploaded_file.read(),
+        #     content_type=uploaded_file.content_type
+        # )
+
         ############################ CHANGE LATER
-        zip_file = zipfile.ZipFile(uploaded_file)
-        zip_file_jsons = []
-        names_in_zip = zip_file.namelist()
-        for curr_file in names_in_zip:
-            if curr_file.endswith('json') and ('package.json' in curr_file):
-                #print(curr_file, "\n\n\n")
-                zip_file_jsons.append(zip_file.open(curr_file).read())
-        
-        json_as_string = zip_file_jsons[0].decode("utf-8")
+        orig_data = uploaded_file.read()
+        #print(len(orig_data))
+        orig_contenttype = uploaded_file.content_type
+        #print(orig_contenttype)
+        # zip_file = zipfile.ZipFile(file_holder)
+        # zip_file_jsons = []
+        # names_in_zip = zip_file.namelist()
+        # for curr_file in names_in_zip:
+        #     if curr_file.endswith('json') and ('package.json' in curr_file):
+        #         #print(curr_file, "\n\n\n")
+        #         zip_file_jsons.append(zip_file.open(curr_file).read())
+        # zip_file.close()
+        json_as_string = zipLogic(uploaded_file)
         fileID, fileName = makeIdentifiers(json_as_string)
         fileID = fileID + ".zip"
+        #print("Uploaded filename before: ", uploaded_file.filename)
         uploaded_file.filename = secure_filename(fileID)
+        #print("Uploaded filename after: ", uploaded_file.filename)
         print("SUBPROCESS OUTPUT:   ", subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True))
 
 
@@ -247,9 +275,13 @@ def upload():
         # Create a new blob and upload the file's content.
         blob = bucket.blob(uploaded_file.filename)
 
+        # blob.upload_from_string(
+        #     uploaded_file.read(),
+        #     content_type=uploaded_file.content_type
+        # )
         blob.upload_from_string(
-            uploaded_file.read(),
-            content_type=uploaded_file.content_type
+            orig_data,
+            content_type=orig_contenttype
         )
 
     # Make the blob public. This is not necessary if the

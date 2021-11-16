@@ -5,5 +5,3 @@ psycopg2
 psycopg2-binary
 SQLAlchemy
 PyMySQL
-werkzeug
-typing

@@ -3,31 +3,17 @@ package com.ECE461P1.app.scores;
 import com.jcabi.github.*;
 
 import javax.json.*;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 
 public class RampUpTime extends Score {
   private float scoreScale = 0.25f;
   private float forkScale = 0.0001f;
 
-  public RampUpTime(String _owner, String _repo) {
+  public RampUpTime (String _owner, String _repo){
     super(_owner, _repo);
   }
 
-  public String mainOrMaster(String path){
-    int i = 0;
-    try {
-      HttpURLConnection conn = makeHttpConnection(apiUrl + "/" + path + "/master");
-      return "master";
-    } catch(Exception e)
-    {
-      return "main";
-    }
-  }
   private float readmeHelper () {
-    if (gh == null) System.out.println("NULL");
     Repo readmeRepo = getJgitRepo(gh, "readme");
 
     JsonObject info = null;
@@ -35,14 +21,13 @@ public class RampUpTime extends Score {
       info = readmeRepo.json();
       return (float) info.getInt("size");
     } catch (Exception e) {
-//      System.out.println(e);
+      System.out.println(e);
       return 0.0f;
     }
   }
-  private float fileCountHelper () {
 
-    String s = mainOrMaster("git/trees");
-    Repo fileCountRepo = getJgitRepo(gh, "git/trees/" + s);
+  private float fileCountHelper () {
+    Repo fileCountRepo = getJgitRepo(gh, "git/trees/master");
 
     JsonObject info = null;
     float fileCount = 0.0f;

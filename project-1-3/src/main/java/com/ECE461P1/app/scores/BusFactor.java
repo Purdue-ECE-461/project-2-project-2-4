@@ -23,7 +23,7 @@ public class BusFactor extends Score {
 //      HttpURLConnection conn = (HttpURLConnection) contributorsUrl.openConnection();
 //      conn.setRequestMethod("GET");
 //      conn.setRequestProperty("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
-        HttpURLConnection conn = makeHttpConnection(apiUrl + "/contributors");
+        HttpURLConnection conn = makeHttpConnection();
 //      if (respon == 200) {
         BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         String tempLine = rd.readLine();

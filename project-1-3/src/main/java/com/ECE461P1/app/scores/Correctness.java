@@ -27,12 +27,12 @@ public class Correctness extends Score {
     try{
       cloneRepo();
     }catch(Exception e){
-      System.out.println(e);
+//      System.out.println(e);
     }
   }
 
   public void deleteClone(){
-    System.out.println("Deleting repo clone in local directory " + repoClone);
+//    System.out.println("Deleting repo clone in local directory " + repoClone);
     git.close();
     deleteDirectory(repoClone);
   }
@@ -42,7 +42,7 @@ public class Correctness extends Score {
   }
 
   private void cloneRepo() throws InvalidRemoteException, TransportException, GitAPIException, IOException {
-    System.out.println("Cloning " + coord + ".git ...");
+//    System.out.println("Cloning " + coord + ".git ...");
     try{
       repoClone = new File("./tmpRepo");
       git = Git.cloneRepository()
@@ -50,11 +50,11 @@ public class Correctness extends Score {
        .setDirectory(repoClone)
        .call();
     } catch (JGitInternalException e) {
-      System.out.println("Local repo ./tempRepo still exists\nDeleting and trying again...");
+//      System.out.println("Local repo ./tempRepo still exists\nDeleting and trying again...");
       deleteClone();
       cloneRepo();
     } catch (TransportException e2) {
-      System.out.println("Failed cloning: Local repo ./tempRepo still exists\nDeleting and trying again...");
+//      System.out.println("Failed cloning: Local repo ./tempRepo still exists\nDeleting and trying again...");
       deleteClone();
       cloneRepo();
     }

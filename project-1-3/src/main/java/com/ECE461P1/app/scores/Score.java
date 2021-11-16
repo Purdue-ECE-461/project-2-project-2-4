@@ -114,7 +114,7 @@ public class Score {
       int respon = httpreq(conUrl);
       if (respon != 200){score = -1.0f;}
     } catch (Exception e){
-      System.out.println("Exception in Score.checkExistence: " + e);
+//      System.out.println("Exception in Score.checkExistence: " + e);
       score = -1.0f;
     }
     return score;

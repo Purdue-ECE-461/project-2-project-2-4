@@ -14,7 +14,7 @@
 
 runtime: python38
 
-instance_class: F1  #F1 F2 F4 F4 F4_1G
+instance_class: F2  #F1 F2 F4 F4 F4_1G
 env_variables:
     CLOUD_STORAGE_BUCKET: ece-461-project-2-team-4.appspot.com
 
@@ -24,6 +24,8 @@ env_variables:
     CLOUD_SQL_CONNECTION_NAME: ece-461-project-2-team-4:us-central1:metric-score-storage
     #CLOUD_SQL_IP: 34.123.253.38
     #CLOUD_SQL_CONNECTION_PORT: 5432
+    GITHUB_TOKEN: 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
+    LOG_LEVEL: 0
 
 # beta_settings:
 #     cloud_sql_instances: ece-461-project-2-team-4:us-central1:score-storage=tcp:5432

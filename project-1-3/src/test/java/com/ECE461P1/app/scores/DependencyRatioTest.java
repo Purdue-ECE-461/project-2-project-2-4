@@ -1,5 +1,7 @@
 package com.ECE461P1.app.scores;
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
@@ -12,19 +14,24 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DependencyRatioTest {
 
     List<String> parseJsonFile(String filepath) {
+        PackageJson packageJson = null;
         try {
             Reader reader = Files.newBufferedReader(Paths.get(filepath));
-            PackageJson packageJson = new Gson().fromJson(reader, PackageJson.class);
-            return (List<String>) packageJson.dependencies;
-        } catch (IOException e) {
-            e.printStackTrace();
+            Gson g = new Gson();
+            packageJson = g.fromJson(reader, PackageJson.class);
+        } catch (Exception e) {
+            return null;
+//            e.printStackTrace();
         }
-        return null;
+
+        return (List<String>) packageJson.dependencies;
+
     }
 
     @ParameterizedTest

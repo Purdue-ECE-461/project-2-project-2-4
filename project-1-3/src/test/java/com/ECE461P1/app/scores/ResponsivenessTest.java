@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ResponsivenessTest {
 
-    @Test
-    void getResponsivenessScore() {
-        Responsiveness test = new Responsiveness("okmr-d", "DOFavoriteButton");
-        System.out.println(test.getResponsivenessScore());
-
-        HttpURLConnection conn = test.makeRespUrlConn("https://api.github.com/repos/chartjs/chartjs-plugin-datalabels/issues?state=closed");
-        int i = 0;
-        i++;
-    }
+//    @Test
+//    void getResponsivenessScore() {
+//        Responsiveness test = new Responsiveness("okmr-d", "DOFavoriteButton");
+//        System.out.println(test.getResponsivenessScore());
+//
+//        HttpURLConnection conn = test.makeRespUrlConn("https://api.github.com/repos/chartjs/chartjs-plugin-datalabels/issues?state=closed");
+//        int i = 0;
+//        i++;
+//    }
 }

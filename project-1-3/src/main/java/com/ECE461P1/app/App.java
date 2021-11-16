@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 public class App
 {
@@ -32,8 +33,12 @@ public class App
     }
     String a = jsonInput.toString().strip();
 //    System.out.println(jsonInput.toString());
-    PackageJson packageJson = new Gson().fromJson(a, PackageJson.class);
-
+    PackageJson packageJson = null;
+    try {
+      packageJson = new Gson().fromJson(a, PackageJson.class);
+    } catch (Exception e){
+//      e.printStackTrace();
+    }
 //    JSONObject obj = new JSONObject(jsonInput);
     // Gson gson = new Gson();
     // System.out.println(gson.toJson(packageJson).toString());

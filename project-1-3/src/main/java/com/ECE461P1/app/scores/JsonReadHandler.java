@@ -55,21 +55,4 @@ public class JsonReadHandler {
         return vals;
     }
 
-    public String getURL() {
-        final Pattern p = Pattern.compile(".*github.com\\/([\\w|\\d|-|_|.]*\\/[\\w|\\d|-|_|.]*).git");
-
-        String url = obj.optString("repository");
-
-        if (url == null) {
-            JSONObject a = obj.optJSONObject("repository");
-            if (a == null) return null;
-            url = a.optString("url");
-            if (url == null) return null;
-        }
-
-        url = url.replaceAll("\"", "");
-        Matcher m = p.matcher(url);
-        m.find();
-        return m.group(1);
-    }
 }

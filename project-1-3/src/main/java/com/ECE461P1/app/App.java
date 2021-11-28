@@ -1,29 +1,16 @@
 package com.ECE461P1.app;
 
 import com.ECE461P1.app.scores.PackageJson;
-import com.ECE461P1.app.scores.Score;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.jcabi.github.Repo;
 import org.eclipse.jgit.api.Git;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 public class App
 {
   public static Git git;
-//  static final Logger logger = LoggerFactory.getLogger(Score.class);
+  //  static final Logger logger = LoggerFactory.getLogger(Score.class);
 
   public static void main (String[] args) {
 
@@ -31,23 +18,15 @@ public class App
     for (String s : args) {
       jsonInput.append(s);
     }
-    String a = jsonInput.toString().strip();
+    JsonHandler jsonHandler = new JsonHandler(jsonInput.toString());
+
 //    System.out.println(jsonInput.toString());
-    PackageJson packageJson = null;
-    try {
-      packageJson = new Gson().fromJson(a, PackageJson.class);
-    } catch (Exception e){
-//      e.printStackTrace();
-    }
-//    JSONObject obj = new JSONObject(jsonInput);
-    // Gson gson = new Gson();
-    // System.out.println(gson.toJson(packageJson).toString());
-
-
-
-//    JsonParser parser = new JsonParser();
-//    JsonObject object = (JsonObject) parser.parse(a);// response will be the json String
-////    YourPojo emp = gson.fromJson(object, YourPojo.class);
+    PackageJson packageJson = jsonHandler.getPackageJson();
+//    try {
+//      packageJson = new Gson().fromJson(a, PackageJson.class);
+//    } catch (Exception e){
+////      e.printStackTrace();
+//    }
 
     RepoHandler repo = new RepoHandler(packageJson);
 
@@ -72,44 +51,15 @@ public class App
     rScores.url = repo.orgUrl;
 
     RepoScoresParent rScoresParent = new RepoScoresParent();
-    List<RepoScores> rscoreslist = new ArrayList<RepoScores>();
-    rscoreslist.add(rScores);
-    rScoresParent.Scores = rscoreslist;
-
+    List<RepoScores> rScoresList = new ArrayList<>();
+    rScoresList.add(rScores);
+    rScoresParent.Scores = rScoresList;
 
     Gson gson = new Gson();
 
+    String result = gson.toJson(rScoresParent);
 
-    System.out.println(gson.toJson(rScoresParent));
-
-//
-//    repo.calcNetScore();
-//    JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-//    arrayBuilder.add(repo.getJObj());
-//    jObj.add("Scores", arrBuilder.build());
-//    jWriter.writeObject(jObj.build()); //TODO
+    System.out.println(result);
 
   }
 }
-
-class RepoScores{
-  String url;
-  float correctnessScore;
-  float responsivenessScore;
-  float busFactor;
-  float licenseScore;
-  float rampUpTimeScore;
-  float dependencyRatio;
-  float netScore;
-
-  public RepoScores() {
-  }
-
-}
-
-class RepoScoresParent{
-  List<RepoScores> Scores;
-  public RepoScoresParent() {
-  }
-}
-

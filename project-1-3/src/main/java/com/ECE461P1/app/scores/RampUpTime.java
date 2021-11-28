@@ -21,8 +21,7 @@ public class RampUpTime extends Score {
     try {
       HttpURLConnection conn = makeHttpConnection(apiUrl + "/" + path + "/master");
       return "master";
-    } catch(Exception e)
-    {
+    } catch(Exception e) {
       return "main";
     }
   }
@@ -39,7 +38,7 @@ public class RampUpTime extends Score {
       return 0.0f;
     }
   }
-  private float fileCountHelper () {
+  public float fileCountHelper () {
 
     String s = mainOrMaster("git/trees");
     Repo fileCountRepo = getJgitRepo(gh, "git/trees/" + s);

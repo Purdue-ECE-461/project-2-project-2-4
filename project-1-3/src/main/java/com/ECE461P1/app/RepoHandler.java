@@ -82,25 +82,35 @@ public class RepoHandler {
   }
 
   public float calcNetScore() {
-    netScore = (float) 0.3 * correctnessScore.getScore();
+    if (correctnessScore != null) {
+      netScore = (float) 0.3 * correctnessScore.getScore();
+    }
 //    System.out.println(netScore);
 //    jObj.add("correctnessScore", correctnessScore.getScore());
-
-    netScore += (float) 0.25 * rampScore.getScore();
+    if (rampScore != null) {
+      netScore += (float) 0.25 * rampScore.getScore();
+    }
 //    System.out.println(netScore);
 
 //    jObj.add("rampScore", rampScore.getScore());
-
-    netScore += (float) 0.2 * responseScore.getScore();
+    if (responseScore != null) {
+      netScore += (float) 0.2 * responseScore.getScore();
+    }
 //    System.out.println(netScore);
-
-    netScore += (float) 0.15 * depScore.getScore();
+    if (depScore != null) {
+      netScore += (float) 0.15 * depScore.getScore();
+    }
 //    System.out.println(netScore);
-
-    netScore += (float) 0.1 * busScore.getScore();
+    if (busScore != null) {
+      netScore += (float) 0.1 * busScore.getScore();
+    }
 //    System.out.println(netScore);
-
-    netScore *= licenseScore.getScore();
+    if (licenseScore != null) {
+      netScore *= licenseScore.getScore();
+    }
+    else {
+      netScore = 0;
+    }
 //    System.out.println(netScore);
 
 //    jObj.addToArray();

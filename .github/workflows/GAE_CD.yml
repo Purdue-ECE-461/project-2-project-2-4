@@ -7,10 +7,13 @@ jobs:
   Continous-Deployment:
     runs-on: ubuntu-latest
     steps:
+     - name: Checkout First
+       uses: actions/checkout@v2
+      
      - name: Deploying to App Engine
        uses: google-github-actions/deploy-appengine@v0.4.0
        with:
          project_id: ${{ secrets.GCP_PROJECT }}
          credentials: ${{ secrets.GCP_SA_KEY }}
-         #working_directory: cloud-test-app/app.yaml
+         working_directory: cloud-test-app/app.yaml
          #deliverables: cloud-test-app/app.yaml

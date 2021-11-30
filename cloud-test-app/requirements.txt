@@ -7,3 +7,4 @@ SQLAlchemy
 PyMySQL
 werkzeug
 typing
+google-cloud-secret-manager

@@ -85,8 +85,17 @@ def get_repository(bytes_as_file)->str:
     json_as_string = zipLogic(bytes_as_file)
     jsonData = json.loads(json_as_string)
 
-    return jsonData['repository']
+    url = ""
+    if type(jsonData['repository']) is dict:
+        url = jsonData['repository']['url']
+    else:
+        url = jsonData['repository']
 
+    url = url.replace("git@github.com:", "")
+    url = url.replace(".git", "")
+
+    return url
+    
 class APIHome(Resource):
     def get(self):
         printout={

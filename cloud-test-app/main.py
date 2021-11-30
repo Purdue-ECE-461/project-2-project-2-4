@@ -383,19 +383,5 @@ api.add_resource(HandlePackageById, '/package/<string:packageId>')
 api.add_resource(Rates, '/package/<string:packageId>/rate')
 api.add_resource(RegistryReset, '/reset')
 
-
-
-
-class UploadPackage(fkr.Resource):
-    def post(self):
-        some_json = fkr.request.get_json()
-        file_string = some_json['data']['Content']
-        file_object = base64.b64encode(file_string.read()).decode('utf-8')
-        print(file_object)
-        print(type(file_object))
-
-api.add_resource(UploadPackage, '/api/upload')
-
-
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)

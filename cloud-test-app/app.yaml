@@ -18,13 +18,6 @@ instance_class: F2  #F1 F2 F4 F4 F4_1G
 env_variables:
     CLOUD_STORAGE_BUCKET: ece-461-project-2-team-4.appspot.com
 
-    CLOUD_SQL_USERNAME: Mohammed_Fashola
-    CLOUD_SQL_PASSWORD: project2database
-    CLOUD_SQL_DATABASE_NAME: url_metric_scores
-    CLOUD_SQL_CONNECTION_NAME: ece-461-project-2-team-4:us-central1:metric-score-storage
-    #CLOUD_SQL_IP: 34.123.253.38
-    #CLOUD_SQL_CONNECTION_PORT: 5432
-    GITHUB_TOKEN: 
     LOG_LEVEL: 0
 
 # beta_settings:

@@ -2,85 +2,28 @@ import datetime
 import subprocess
 import sys
 import json
-import flask as fk
-import flask_restful as fkr
 import logging
 import os
+import json
+import base64
+import zipfile
 from io import BytesIO
 from typing import Union
 from flask.helpers import url_for
 from google.cloud import storage
 from google.cloud.storage import client
 from werkzeug.utils import redirect, secure_filename
-import pymysql
-import json
-import base64
-import zipfile
 
-app = fk.Flask(__name__, template_folder="templates")
-api = fkr.Api(app)
+from flask import Flask, request
+from flask_restful import Api, Resource
 
+app = Flask(__name__)
+api = Api(app)
 
 # Configure this environment variable via app.yaml
 CLOUD_STORAGE_BUCKET = os.environ['CLOUD_STORAGE_BUCKET']
 MAX_RESULTS_PER_PAGE = 10
-#ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'zip'}
 ALLOWED_EXTENSIONS = {'zip'}
-
-def allowed_file(filename):
-    return '.' in filename and (filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
-
-def round_up(dividend, divisor) -> int:
-    output = int(dividend // divisor + (dividend % divisor > 0))
-    return output
-
-def parseJson(filename):
-    with open(filename) as json_file:
-        data = json.load(json_file)
-
-    return data
-
-def getMetadataByID(ID):    #Function should return metadata as JSON from given ID as string
-    #TODO metadata_JSON = sql_lookup
-    metadata_JSON = {"content": "in getMetadataByID"}
-    return metadata_JSON
-
-def connecttoDB():
-    db_user = os.environ['CLOUD_SQL_USERNAME']
-    db_password = os.environ['CLOUD_SQL_PASSWORD']
-    db_name = os.environ['CLOUD_SQL_DATABASE_NAME']
-    db_connection_name = os.environ['CLOUD_SQL_CONNECTION_NAME']
-    #db_address = os.environ['CLOUD_SQL_IP']
-    unix_socket = '/cloudsql/{}'.format(db_connection_name)
-
-    try:
-        if os.environ.get('GAE_ENV') == 'standard':
-            return pymysql.connect(unix_socket=unix_socket, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
-        else:
-            #db_address = os.environ['CLOUD_SQL_IP']
-            db_address = '34.123.253.38'
-            return pymysql.connect(host=db_address, db=db_name, user=db_user, password=db_password, charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
-    except:
-        pass
-    
-    pass
-
-def format_json_string(json_as_string)->str:
-    jsonData = json.loads(json_as_string)
-    data = {}
-    data['repository'] = jsonData['repository']
-    try:
-        data['dependencies'] = list(jsonData['dependencies'].values())
-    except:
-        pass
-        #data['dependencies'] = []
-    return str(data)
-
-def makeIdentifiers(packagejson) -> str:
-    packagedict = json.loads(packagejson)
-    ID = str(packagedict.get('name')) + str(packagedict.get('version'))
-    name = str(packagedict.get('name'))
-    return ID, name
 
 def zipLogic(zip):
     #zip_IO = BytesIO(zip)
@@ -94,219 +37,26 @@ def zipLogic(zip):
     zip_file.close()
     return zip_file_jsons[0].decode("utf-8")
 
-@app.route('/')
-def homepage():
-
-    return fk.render_template('root.html')
-
-@app.route('/reset')
-def reset():
-
-    return fk.render_template('reset_warning.html')
-
-@app.route('/reset-confirmed', methods=["GET", "POST"])
-def resetConfirmed():
-    #TODO Make sure to remove SQL database items as well
-    if fk.request.method == 'GET':
-        return redirect('/')
-    gcs = storage.Client()
-
-    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
-    for target_name in blobs:
-        target_blob = bucket.blob(target_name)  #Get the right blob by filename
-        target_blob.delete()
-    
-
-    return fk.render_template('reset_complete.html')
-
-@app.route('/java-version')
-def javaVersion():
-    output2 = subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "Main.jar"], capture_output=True) # We want this to be a string that looks like json
-
-    version2 = output2.stdout.decode("utf-8")
-    version3 = output2.stderr.decode("utf-8")
-    print(output2.stdout.decode("utf-8"))
-    version1 = "java placeholder"
-    version1 = sys.platform
-    return fk.render_template('javaversion.html', java_version1 = version1, java_version2 = version2, java_version3 = version3)
-
-@app.route('/upload-package')
-def uploadPackage():
-
-    return fk.render_template('upload_package.html')
-
-
-@app.route('/download-package', methods=['POST'])
-def downloadPackage():
-    if fk.request.method == 'POST':
-        get_package_index = int(fk.request.form['package_index'])
-
-    gcs = storage.Client()
-
-    # Get the bucket that the file will be downloaded from.
-    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
-    target_name =  blobs[get_package_index] #Get the blob name
-    target_blob = bucket.blob(target_name)  #Get the right blob by filename
-    bytes = target_blob.download_as_bytes()
-    bytes_as_file = BytesIO(bytes)
-
-    return fk.send_file(bytes_as_file, as_attachment=True, attachment_filename=target_name)
-
-
-
-
-@app.route('/view-packages', methods=['GET', 'POST'])
-def viewPackages(curr_page = 1):
-    fk.render_template('loading.html')
-    if fk.request.method == 'POST':
-        curr_page = fk.request.form['next_page']
-    print("CURR PAGE1: ", curr_page)
+def format_json_string(json_as_string)->str:
+    jsonData = json.loads(json_as_string)
+    data = {}
+    data['repository'] = jsonData['repository']
     try:
-        curr_page = int(curr_page)
+        data['dependencies'] = list(jsonData['dependencies'].values())
+        data['dependencies'] = [s.replace("^", "") for s in data['dependencies']]
     except:
-        curr_page = 1
-    print("CURR PAGE2: ", curr_page)
-    gcs = storage.Client()
+        pass
 
-    # Get the bucket that the file will be uploaded to.
-    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    return str(data)
 
-    all_pages = bucket.list_blobs().pages
-    total_blobs = 0
-    for page in all_pages:
-        total_blobs += page.num_items
-    max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
-    if (curr_page < 1):           #Should we deal with an upper bound?
-        curr_page = 1
-    elif(curr_page > max_pages):
-        curr_page = max_pages
-    max_results = MAX_RESULTS_PER_PAGE * curr_page
-    package_identifiers = []
-    print("CURR PAGE3: ", curr_page)
-    for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
-        if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
-            print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
-            blob_tuple = (index_blobs, blob.name)
-            package_identifiers.append(blob_tuple)
+def get_repository(bytes_as_file)->str:
+    json_as_string = zipLogic(bytes_as_file)
+    jsonData = json.loads(json_as_string)
 
+    return jsonData['repository']
 
-    return fk.render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
-
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    """Process the uploaded file and upload it to Google Cloud Storage."""
-    # Create a Cloud Storage client.
-    gcs = storage.Client()
-
-    # Get the bucket that the file will be uploaded to.
-    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-
-    if fk.request.method == 'POST':
-        # check if the post request has the file part
-        if 'files' not in fk.request.files:
-            
-            return fk.redirect(fk.request.url)
-        uploaded_files = fk.request.files.getlist('files')
-
-
-    
-    
-    
-    for uploaded_file in uploaded_files:
-        
-        if not (uploaded_file):
-            return 'No file uploaded.', 400
-        if not (allowed_file(uploaded_file.filename)):
-            return 'Unallowed file type uploaded. Only .zip files are accepted at this time.', 400            
-        if uploaded_file.filename == '':
-            return 'No selected file', 400 
-
-        uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
-        if uploaded_file.filename == '':
-            return 'secure_filename broke and returned an empty filename', 400 
-        #print(type(uploaded_file))
-        # blob = bucket.blob(uploaded_file.filename)
-
-        # blob.upload_from_string(
-        #     uploaded_file.read(),
-        #     content_type=uploaded_file.content_type
-        # )
-
-        ############################ CHANGE LATER
-        orig_data = uploaded_file.read()
-        #print(len(orig_data))
-        orig_contenttype = uploaded_file.content_type
-        #print(orig_contenttype)
-        # zip_file = zipfile.ZipFile(file_holder)
-        # zip_file_jsons = []
-        # names_in_zip = zip_file.namelist()
-        # for curr_file in names_in_zip:
-        #     if curr_file.endswith('json') and ('package.json' in curr_file):
-        #         #print(curr_file, "\n\n\n")
-        #         zip_file_jsons.append(zip_file.open(curr_file).read())
-        # zip_file.close()
-        json_as_string = zipLogic(uploaded_file)
-        fileID, fileName = makeIdentifiers(json_as_string)
-        fileID = fileID + ".zip"
-        #print("Uploaded filename before: ", uploaded_file.filename)
-        uploaded_file.filename = secure_filename(fileID)
-        #print("Uploaded filename after: ", uploaded_file.filename)
-        print("SUBPROCESS OUTPUT:   ", subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True))
-
-
-        ################################
-        #Upload rate information SQL Database
-        conn = connecttoDB()
-        cursor = conn.cursor()
-        data = parseJson("output.json")
-        try:
-            for entry in data["scores"]:
-                cursor.execute("INSERT INTO scores_table (url, ramp_up_score, correctness_score, bus_factor_score, responsive_maintainer_score, license_score, dependency_score) VALUES(%s, %s, %s, %s, %s, %s, %s)", (entry["url"], entry["rampup"], entry["correctness"], entry["busfactor"], entry["contributors"], entry["license"], entry["dependency"]))
-
-            conn.commit()
-            pass
-        except:
-            pass
-
-
-        # Create a new blob and upload the file's content.
-        blob = bucket.blob(uploaded_file.filename)
-
-        # blob.upload_from_string(
-        #     uploaded_file.read(),
-        #     content_type=uploaded_file.content_type
-        # )
-        blob.upload_from_string(
-            orig_data,
-            content_type=orig_contenttype
-        )
-
-    # Make the blob public. This is not necessary if the
-    # entire bucket is public.
-    # See https://cloud.google.com/storage/docs/access-control/making-data-public.
-    #blob.make_public()
-
-    # The public URL can be used to directly access the uploaded file via HTTP.
-    #return blob.public_url
-    return fk.render_template('upload_package_success.html')
-
-
-@app.errorhandler(500)
-def server_error(e: Union[Exception, int]) -> str:
-    logging.exception('An error occurred during a request.')
-    return """
-    An internal error occurred: <pre>{}</pre>
-    See logs for full stacktrace.
-    """.format(e), 500
-
-
-
-class APIHome(fkr.Resource):
+class APIHome(Resource):
     def get(self):
-
         printout={
             "description": "Welcome to the Package Manager API!", 
             "Available Commands": {
@@ -319,141 +69,214 @@ class APIHome(fkr.Resource):
             }
         } 
         return printout
-        
-    def options(self):
-        return 'Error in Options for APIHome', 400
 
-api.add_resource(APIHome, '/api')
-
-class UploadPackage(fkr.Resource):
+class UploadPackage(Resource):
     def post(self):
-        #print("In POST")
-        #Read payload as json
-        input_json = fkr.request.get_json()
-        #Get file content as 64-bit encoded String
-        file_string = input_json['data']['Content']
-        file_ID_raw = str(input_json['metadata']['ID'])
-        file_ID = secure_filename(file_ID_raw + ".zip")#Set filename for storage on GCP (Storage and SQL)
-
-        decoded_data = base64.b64decode(bytes(file_string, 'utf-8'))    #Make into bytes
-
-        #Make zipfile object and grab 'package.json' TODO Add this to requirements
-        uploaded_file = BytesIO(decoded_data)
-        zip_file = zipfile.ZipFile(uploaded_file, "r")
-        zip_file_jsons = []
-        names_in_zip = zip_file.namelist()
-        for curr_file in names_in_zip:
-            if curr_file.endswith('json') and ('package.json' in curr_file):
-                zip_file_jsons.append(zip_file.open(curr_file).read())
-
-        json_as_string = zip_file_jsons[0].decode("utf-8")
-        print(json_as_string)
-
-        gcs = storage.Client()
-        # Get the bucket that the file will be uploaded to.
-        bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-        conn = connecttoDB()
-        cursor = conn.cursor()
-        data = parseJson("output.json")
         try:
-            for entry in data["scores"]:
-                cursor.execute("INSERT INTO scores_table (url, ramp_up_score, correctness_score, bus_factor_score, responsive_maintainer_score, license_score, dependency_score) VALUES(%s, %s, %s, %s, %s, %s, %s)", (entry["url"], entry["rampup"], entry["correctness"], entry["busfactor"], entry["contributors"], entry["license"], entry["dependency"]))
-
-            conn.commit()
-            pass
-        except:
-            pass
-
-
-        # Create a new blob and upload the file's content.
-        blob = bucket.blob(uploaded_file.filename)
-
-        blob.upload_from_string(uploaded_file.read(),content_type=uploaded_file.content_type)
-
-        return {'data': json_as_string}
-
-    def options(self):
-        return 'Error in Options for UploadPackage', 400
-
-api.add_resource(UploadPackage, '/api/package')
-
-
-
-class ViewPackages(fkr.Resource):
-    def post(self, offset=1):
-
-        curr_page = offset
-
-        try:
-            curr_page = int(curr_page)
-        except:
-            curr_page = 1
-
-        gcs = storage.Client()
-
-
-        bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-
-        all_pages = bucket.list_blobs().pages
-        total_blobs = 0
-        for page in all_pages:
-            total_blobs += page.num_items
-        max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
-        if (curr_page < 1):           #Should we deal with an upper bound?
-            curr_page = 1
-        elif(curr_page > max_pages):
-            curr_page = max_pages
-        max_results = MAX_RESULTS_PER_PAGE * curr_page
-        package_identifiers = []
-
-        for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
-            if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
-                #print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
-                
-                blob_tuple = (index_blobs, blob.name)
-                package_identifiers.append(blob_tuple)
-                #TODO Look up package metadata in SQL from package_identifier. This metadata is what will be returned in JSON format.
-
-        return {'description': 'in get ViewPackages'}
-
-    def options(self):
-        return 'Error in Options for UploadPackage', 400
-
-api.add_resource(ViewPackages, '/api/packages')
-
-
-
-class DeletePackages(fkr.Resource):
-    def delete(self):
-        try:
-            #TODO Make sure to remove SQL database items as well
+            # Get the bucket that the file will be uploaded to.
             gcs = storage.Client()
-
             bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-            blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
-            for target_name in blobs:
-                target_blob = bucket.blob(target_name)  #Get the right blob by filename
+
+            # Read payload as json
+            input_json = request.get_json()
+
+            # parse the metadata and data fields in the request
+            file_string = input_json['data']['Content']
+            file_name = str(input_json['metadata']['Name'])
+            file_ID = str(input_json['metadata']['ID'])
+            file_version = str(input_json['metadata']['Version'])
+
+            final_file_name = secure_filename(file_name + "_" + file_ID + "_" + file_version + ".zip") #Set filename for storage on GCP (Storage and SQL)
+            decoded_data = base64.b64decode(bytes(file_string, 'utf-8')) #Make into bytes
+            
+
+            uploaded_file = BytesIO(decoded_data)
+            # Create a new blob and upload the file's content.
+            blob = bucket.blob(final_file_name)
+
+            # if package already exists 
+            if blob.exists():
+                return {"message":"Package already exists."}, 403
+
+            # if ID already being used by another package
+            for blob in bucket.list_blobs():
+                 if "_" + file_ID + "_" in blob.name:
+                     return {"message":"Package ID already taken."}, 403
+
+            blob.upload_from_string(uploaded_file.read(), content_type='application/zip')
+            responseJson = {
+                "Name": file_name,
+                "Version": file_version,
+                "ID": file_ID
+            }
+
+            return responseJson, 201
+        except:
+            return {"message":"Malformed request."}, 400
+
+class HandlePackageByName(Resource):
+    def get(self, packageName):
+        #TODO - retrieve all the package versions.
+        pass
+
+    def delete(self, packageName):
+        try:
+            gcs = storage.Client()
+            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+            target_blob = [blob.name for blob in bucket.list_blobs() if blob.name.startswith(packageName)] # List all the blobs available
+
+            if target_blob == []:
+                return {"message": "No such Package."}, 400
+
+            for target_name in target_blob:
+                target_blob = bucket.blob(target_name)  # Get the right blob by filename
                 target_blob.delete()
 
+            return {"message": "Package is deleted."}, 200
+        except:
+            return {"message": "Error in request."}, 400
 
+class HandlePackageById(Resource):
+    def get(self, packageId):
+        response = {
+                "code": -1,
+                "message": "An error occurred while retrieving package"
+        }
+
+        try:
+            gcs = storage.Client()
+            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+            for blob in bucket.list_blobs():
+                if "_" + packageId + "_" in blob.name:
+                    bytes_as_file = BytesIO(blob.download_as_bytes())
+                    fileName, fileId, fileVersion = blob.name.split('_') # get the metadata from the blob name
+                    fileVersion = fileVersion.removesuffix('.zip') # remove .zip from fileversion
+
+                    packageContent = base64.b64encode(bytes_as_file.read())
+                    packageContentString = packageContent.decode('ascii')
+
+                    response = {
+                        "metadata": {
+                            "Name": fileName,
+                            "Version": fileVersion,
+                            "ID": fileId
+                        },
+                        "data": {
+                            "Content": packageContentString,
+                            "URL": "https://github.com/" + get_repository(bytes_as_file),
+                            "JSProgram": "This field is currently not supported by our API"
+                        }
+                    }
+                    return response, 200
+            return response, 500
+        except:
+            return response, 500
+
+    def put(self, packageId):
+        try:
+            # Get the bucket that the file will be uploaded to.
+            gcs = storage.Client()
+            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+            # Read payload as json
+            input_json = request.get_json()
+
+            # parse the metadata and data fields in the request
+            file_string = input_json['data']['Content']
+            file_name = str(input_json['metadata']['Name'])
+            file_ID = str(input_json['metadata']['ID'])
+            file_version = str(input_json['metadata']['Version'])
+
+            if file_ID != packageId:
+                return {"message":"Malformed request."}, 400
+
+            final_file_name = file_name + "_" + file_ID + "_" + file_version + ".zip" #Set filename for storage on GCP (Storage and SQL)
+            decoded_data = base64.b64decode(bytes(file_string, 'utf-8')) #Make into bytes
+            uploaded_file = BytesIO(decoded_data)
+
+            # get blob and update the file's content.
+            blob = bucket.get_blob(final_file_name)
+            blob.upload_from_string(uploaded_file.read())
+
+            return "",200
+        except:
+            return {"message":"Malformed request."}, 400
+
+    def delete(self, packageId):
+        try:
+            gcs = storage.Client()
+            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+            target_blob = [blob.name for blob in bucket.list_blobs() if "_" + packageId + "_" in blob.name] # List all the blobs available
+
+            if target_blob == []:
+                return {"message": "No such Package."}, 400
+
+            for target_name in target_blob:
+                target_blob = bucket.blob(target_name)  # Get the right blob by filename
+                target_blob.delete()
+
+            return {"message": "Package is deleted."}, 200
+        except:
+            return {"message": "Error in request."}, 400
+
+class Rates(Resource):
+    def get(self, packageId):
+        try:
+            # connect to cloud storage
+            gcs = storage.Client()
+            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+            # loop through all the files in the bucket to find the package of interest
+            for blob in bucket.list_blobs():
+                if "_" + packageId + "_" in blob.name:
+                    bytes_as_file = BytesIO(blob.download_as_bytes())
+                    json_as_string = zipLogic(bytes_as_file)
+
+                    output = subprocess.run(["java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True)
+
+                    # use this if you are deploying
+                    # output = subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True)
+                    output_json =  output.stdout.decode("utf-8")
+                    data = json.loads(output_json)['Scores'][0]
+
+                    response = {
+                        "BusFactor": data['busFactor'],
+                        "Correctness": data['correctnessScore'],
+                        "RampUp": data['rampUpTimeScore'],
+                        "ResponsiveMaintainer": data['responsivenessScore'],
+                        "LicenseScore": data['licenseScore'],
+                        "GoodPinningPractice": data['dependencyRatio']
+                    }
+                    return response, 200
+
+            return {"message":"No such package exists."}, 400
+        except:
+            return {"message":"The package rating system chocked on at least one of the metrics."}, 500
+
+class RegistryReset(Resource):
+    def delete(self):
+        try:
+            gcs = storage.Client()
+            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+            blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+            for target_name in blobs:
+                target_blob = bucket.blob(target_name)  # Get the right blob by filename
+                target_blob.delete()
 
             return {"description": "Registry is reset"}, 200
         except:
             return {"description": "Error in return"}, 400
 
-    def options(self):
-        return 'Error in Options for UploadPackage', 400
-
-api.add_resource(DeletePackages, '/api/reset')
-
-
+api.add_resource(APIHome, '/')
+api.add_resource(UploadPackage, '/package')
+api.add_resource(HandlePackageByName, '/package/byName/<string:packageName>')
+api.add_resource(HandlePackageById, '/package/<string:packageId>')
+api.add_resource(Rates, '/package/<string:packageId>/rate')
+api.add_resource(RegistryReset, '/reset')
 
 if __name__ == '__main__':
-    # This is used when running locally only. When deploying to Google App
-    # Engine, a webserver process such as Gunicorn will serve the app. This
-    # can be configured by adding an `entrypoint` to app.yaml.
-    # Flask's development server will automatically serve static files in
-    # the "static" directory. See:
-    # http://flask.pocoo.org/docs/1.0/quickstart/#static-files. Once deployed,
-    # App Engine itself will serve those files as configured in app.yaml.
     app.run(host='127.0.0.1', port=5000, debug=True)

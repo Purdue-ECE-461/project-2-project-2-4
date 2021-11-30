@@ -12,5 +12,5 @@ jobs:
        with:
          project_id: ${{ secrets.GCP_PROJECT }}
          credentials: ${{ secrets.GCP_SA_KEY }}
-         #working_directory: /cloud-test-app
-         deliverables: 'cloud-test-app/app.yaml'
+         working_directory: 'cloud-test-app/app.yaml'
+         #deliverables: 'cloud-test-app/app.yaml'

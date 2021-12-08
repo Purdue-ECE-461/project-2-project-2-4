@@ -1,28 +1,47 @@
 <!DOCTYPE html>
+<style>
+body {
+  text-align: center;
+  font-family: "Helvetica";
+ }
+
+#page-wrap { 
+  position: absolute; 
+  left: 50%; 
+  width: 800px;
+  margin-left: -400px;
+}
+.button {
+        font-family: "Helvetica";
+    }
+</style>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Application Home Page</title>
 </head>
-<body>
+<body id="page-wrap">
     <h1>
+
         Welcome to the Package Manager!
+        
     </h1>
     <h2>
-        What would you like to do?
+            What would you like to do?
     </h2>
-    <button onclick="location.href='/upload-package'" type="button">
+    <h2> &nbsp; </h2>
+    &nbsp;
+    <button class="button" onclick="location.href='/upload-package'" type="button">
         Upload Package
     </button>
-    <button onclick="location.href='/java-version'" type="button">
-        Check Java
-    </button>
-    <button onclick="location.href='/view-packages'" type="button">
+    &nbsp;
+    <button class="button" onclick="location.href='/view-packages'" type="button">
         View Uploaded Packages
     </button>
-    <button onclick="location.href='/reset'" type="button">
+    &nbsp;
+    <button class="button" onclick="location.href='/reset'" type="button">
         Reset System
     </button>
-
+    
 </body>
 </html>

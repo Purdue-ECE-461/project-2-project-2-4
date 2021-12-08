@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<style>
+    body {
+      text-align: center;
+      font-family: "Helvetica";
+     }
+    
+    #page-wrap { 
+      position: absolute; 
+      left: 50%; 
+      width: 800px;
+      margin-left: -400px;
+    }
+    .button {
+            font-family: "Helvetica";
+        }
+    </style>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,18 +24,18 @@
     <h1>Are you sure you want to reset the Package Manager?</h1>
     <h2>This action can not be undone.</h2>
 
-    <form action="/reset-confirmed" method="POST" id="reset_button">
+    <form class="button" action="/reset-confirmed" method="POST" id="reset_button">
         
         </form>
         
-        <button type="submit" form="reset_button" value="Yes">Yes, reset the manager</button>
+        <button class="button" type="submit" form="reset_button" value="Yes">Yes, reset the manager</button>
 
 
-    <button onclick="location.href='/'" type="button">
+    <button class="button" onclick="location.href='/'" type="button">
         No
     </button>
     <br>
-    <button onclick="location.href='/'" type="button">
+    <button class="button" onclick="location.href='/'" type="button">
         Return Home
     </button>
 

@@ -15,7 +15,7 @@ from google.cloud.storage import client
 from werkzeug.utils import redirect, secure_filename
 from google.cloud import secretmanager
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_restful import Api, Resource, reqparse
 
 app = Flask(__name__)
@@ -42,6 +42,140 @@ def access_secret_version(secret_id, version_id="latest"):
     return response.payload.data.decode('UTF-8')
 os.environ["GITHUB_TOKEN"] = access_secret_version("GITHUB_TOKEN")
 
+def versionChecker(package_version, acceptable_versions) -> bool:
+    if acceptable_versions == "ALL_VERSIONS":
+        return True
+    if package_version == acceptable_versions:
+        return True
+    if "*" in acceptable_versions:
+        return True
+    major, minor, patch = package_version.split(".")
+    major_int = int(major)
+    minor_int = int(minor)
+    patch_int = int(patch)
+    minor_and_patch = int(minor + patch)
+    if "^" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("^", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_minor_int = int(accept_minor)
+        accept_major_int = int(accept_major)
+        accept_patch_int = int(accept_patch)
+        if (major == accept_major_int):
+            if minor_int > accept_minor_int:
+                return True
+            if minor_int < accept_minor_int:
+                return False
+            if patch_int >= accept_patch_int:
+                return True
+        return False
+    if "~" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("~", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        if (major == accept_major) and (minor == accept_minor) and (patch_int >= accept_patch_int):
+            return True 
+        return False
+    if ">" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace(">", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return True 
+        if (major_int < accept_major_int):
+            return False
+        if minor_int > accept_minor_int:
+            return True 
+        if minor_int < accept_minor_int:
+            return False
+        if patch_int > accept_patch_int:
+            return True
+        return False
+    if ">=" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace(">=", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return True 
+        if (major_int < accept_major_int):
+            return False
+        if minor_int > accept_minor_int:
+            return True 
+        if minor_int < accept_minor_int:
+            return False
+        if patch_int >= accept_patch_int:
+            return True
+        return False
+    if "<" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("<", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return False
+        if (major_int < accept_major_int):
+            return True
+        if minor_int > accept_minor_int:
+            return False 
+        if minor_int < accept_minor_int:
+            return True
+        if patch_int < accept_patch_int:
+            return True
+        return False
+    if "<=" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("<=", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return False
+        if (major_int < accept_major_int):
+            return True
+        if minor_int > accept_minor_int:
+            return False 
+        if minor_int < accept_minor_int:
+            return True
+        if patch_int <= accept_patch_int:
+            return True
+        return False
+    if "-" in acceptable_versions:
+        lhs, rhs = acceptable_versions.split("-")
+        lhs_major, lhs_minor, lhs_patch = lhs.split(".")
+        lhs_major = int(lhs_major)
+        lhs_minor = int(lhs_minor)
+        lhs_patch = int(lhs_patch)
+        rhs_major, rhs_minor, rhs_patch = rhs.split(".")
+        rhs_major = int(rhs_major)
+        rhs_minor = int(rhs_minor)
+        rhs_patch = int(rhs_patch)
+
+        if (major_int > lhs_major) and (major_int < rhs_major):
+            return True 
+        if (major_int < lhs_major) or (major_int > rhs_major):
+            return False
+        if (major_int == lhs_major):
+            if minor_int > lhs_minor:
+                return True 
+            if minor_int < lhs_minor:
+                return False
+            if patch_int >= lhs_patch:
+                return True
+
+        if (major_int == rhs_major):
+            if minor_int > rhs_minor:
+                return False 
+            if minor_int < rhs_minor:
+                return True
+            if patch_int <= rhs_patch:
+                return True
+        return False
+    
+    return False
 
 def round_up(dividend, divisor) -> int:
     """Simple function to round up an integer using logic"""
@@ -96,6 +230,13 @@ def get_repository(bytes_as_file)->str:
 
     return url
     
+
+
+@app.route('/home')
+def homepage():
+
+    return render_template('root.html')
+
 class APIHome(Resource):
     def get(self):
         printout={
@@ -114,38 +255,91 @@ class APIHome(Resource):
 class ViewPackages(Resource):
     def __init__(self):
             self.reqparse = reqparse.RequestParser()
-            self.reqparse.add_argument('offset', type = int, default=1)
+            self.reqparse.add_argument('offset', type = int, default=1, location='args')
 
             
     def post(self):
-        try:    
-            args = self.reqparse.parse_args()
-            offset = int(args['offset']) #Should be int given by user
-            curr_page = offset
+        #try:   
+        input_json = request.get_json()   
 
-            try:
-                curr_page = int(curr_page)
-            except:
-                curr_page = 1
+        search_names = []
+        search_versions = []
+        print(input_json)
+        queried = False
+        if input_json is not None:
+            queried = True
+            for package_request in input_json:
+                try:
+                    name = package_request.get('Name')
+                    if name is None:
+                        raise
+                    search_names.append(name)
+                except:
+                    print("name not present")
+                    return {"message": "Error in request. Specific package requested but no name given with header 'Name'"}, 400
+                try:
+                    version = package_request.get('Version')
+                    if version is None:
+                        raise
+                    search_versions.append(version)
+                except:
+                    print("version not present, defaulting to all versions")
+                    search_versions.append("ALL_VERSIONS") #All versions if not given
 
-            gcs = storage.Client()
+
+        args = self.reqparse.parse_args()
+        offset = int(args['offset']) #Should be int given by user
+        curr_page = offset
+
+        try:
+            curr_page = int(curr_page)
+        except:
+            curr_page = 1
+
+        gcs = storage.Client()
 
 
-            bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+        bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
 
-            all_pages = bucket.list_blobs().pages
-            total_blobs = 0
-            for page in all_pages:
-                total_blobs += page.num_items
-            max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
-            if (curr_page < 1):           #Should we deal with an upper bound?
-                curr_page = 1
-            elif(curr_page > max_pages):
+        all_pages = bucket.list_blobs().pages
+        total_blobs = 0
+        for page in all_pages:
+            total_blobs += page.num_items
+        max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
+        if (curr_page < 1):           #Should we deal with an upper bound?
+            curr_page = 1
+        elif(curr_page > max_pages):
+            curr_page = max_pages
+        #max_results = MAX_RESULTS_PER_PAGE * curr_page
+        package_identifiers = []
+        if queried:
+            matching_packages_page = []
+            results_found = 0
+            for  index_blobs, blob in enumerate(bucket.list_blobs()):
+                fileName, fileID, fileVersion = blob.name.split('_')
+                fileVersion = fileVersion.replace(".zip", "")
+                try:
+                    if (fileName in search_names) and (versionChecker(fileVersion, search_versions[search_names.index(fileName)]) ):
+
+                        JsonIdentifier = {
+                        "Name": fileName,
+                        "Version": fileVersion,
+                        "ID": fileID
+                        }
+                        package_identifiers.append(JsonIdentifier)
+                        results_found += 1
+                except:
+                    return {"message": "Version parsing error. Please check request for proper versioning notation."}, 400
+            max_pages = round_up(results_found, MAX_RESULTS_PER_PAGE)
+            if(curr_page > max_pages):
                 curr_page = max_pages
-            max_results = MAX_RESULTS_PER_PAGE * curr_page
-            package_identifiers = []
+            for index, package_info in enumerate(package_identifiers):
+                if index >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
+                    matching_packages_page.append(package_info)
+            return matching_packages_page, 201
 
-            for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
+        else:
+            for  index_blobs, blob in enumerate(bucket.list_blobs()):
                 if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
                     #print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
                     
@@ -163,8 +357,8 @@ class ViewPackages(Resource):
 
             return package_identifiers, 201 #May need a "json.dumps()" here for package_identifiers since it is a list of JSONs
                
-        except:
-            return {"message": "Error in request."}, 400
+        #except:
+        #    return {"message": "Error in request."}, 400
 
 
 class UploadPackage(Resource):

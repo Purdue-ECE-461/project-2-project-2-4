@@ -11,12 +11,10 @@ public class DependencyRatio extends Score{
     Collection<String> versionList;
 //    public DependencyRatio(String _owner, String _repo) {
 //        super(_owner, _repo);
-//        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json"; //TODO: replace with actual
+//        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json";
 //    }
     public DependencyRatio() { //testing purposes
         super();
-//        repoName = _repoName;
-//        dirPath = "./src/test/resources/jsonTestFiles/" + repoName + "-package.json";
     }
     public DependencyRatio(Collection<String> _versionList) {
         super();
@@ -52,17 +50,14 @@ public class DependencyRatio extends Score{
         while(valIter.hasNext()){
             String s = valIter.next();
 //            s = s.substring( 1, s.length() - 1 );
-//            System.out.println(s);
             count += isMajMinPinned(s);
         }
-//        System.out.println("pinned: " + count);
         return count;
     }
 
     int findNumDeps(Collection<String> jsonVals){
         if (jsonVals == null) return 1;
         if (jsonVals.size() == 0) return 1;
-//        System.out.println("size" + jsonVals.size());
 
         return jsonVals.size();
     }

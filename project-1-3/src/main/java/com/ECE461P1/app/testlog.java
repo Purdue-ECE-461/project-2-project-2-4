@@ -54,7 +54,7 @@
 //      URL conUrl = new URL("http://api.github.com/repos/octocat/Hello-World");
 //      response = httpreq(conUrl);
 //    }catch(Exception e){
-//      System.out.println(e);
+//      System.err.println(e);
 //    }
 //    if (response == 200){
 //      passedTests++;

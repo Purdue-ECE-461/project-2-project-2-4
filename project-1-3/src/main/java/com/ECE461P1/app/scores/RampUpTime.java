@@ -26,7 +26,7 @@ public class RampUpTime extends Score {
     }
   }
   private float readmeHelper () {
-    if (gh == null) System.out.println("NULL");
+//    if (gh == null) System.out.println("NULL");
     Repo readmeRepo = getJgitRepo(gh, "readme");
 
     JsonObject info = null;
@@ -49,7 +49,7 @@ public class RampUpTime extends Score {
     try {
       info = fileCountRepo.json();
     } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
     }
 
     JsonArray tree = info.getJsonArray("tree");
@@ -80,7 +80,7 @@ public class RampUpTime extends Score {
         try {
           subTreeInfo = subTreeRepo.json();
         } catch (IOException e) {
-          System.out.println(e);
+//          System.out.println(e);
         }
 
         subTreeSha = node.getString("sha");
@@ -101,7 +101,7 @@ public class RampUpTime extends Score {
     try {
       info = fileCountRepo.json();
     } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
     }
 
     return (float) info.getInt("forks");
@@ -135,6 +135,6 @@ public class RampUpTime extends Score {
 //    RampUpTime test = new RampUpTime("edapaker", "Fraction-Approximation");
     RampUpTime test = new RampUpTime("Tencent", "phxpaxos");
 //    RampUpTime test = new RampUpTime("okmr-d", "DOFavoriteButton");
-    System.out.println(test.getRampUpTimeScore());
+//    System.out.println(test.getRampUpTimeScore());
   }
 }

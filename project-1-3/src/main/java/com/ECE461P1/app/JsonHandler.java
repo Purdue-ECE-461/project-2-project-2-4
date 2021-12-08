@@ -14,7 +14,7 @@ public class JsonHandler {
         try {
             packageJson = new Gson().fromJson(jsonInput.strip(), PackageJson.class);
         } catch (Exception e){
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 }

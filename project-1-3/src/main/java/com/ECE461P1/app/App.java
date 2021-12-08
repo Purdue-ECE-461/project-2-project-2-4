@@ -59,7 +59,7 @@ public class App
 
     String result = gson.toJson(rScoresParent);
 
-    System.out.println(result);
+//    System.out.println(result);
 
   }
 }

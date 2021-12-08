@@ -22,7 +22,7 @@ public class Responsiveness extends Score {
     try {
       info = issueCountRepo.json();
     } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
     }
 
     issueCount = (float) info.getInt("open_issues_count");
@@ -40,7 +40,7 @@ public class Responsiveness extends Score {
     try {
       info = issueCountRepo.issues().search(Issues.Sort.UPDATED, Search.Order.DESC, qualifiers);
     } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
     }
 
     for (Issue test : info) {
@@ -64,7 +64,7 @@ public class Responsiveness extends Score {
       if (issueCountRepo.issues() == null) return 0;
       info = issueCountRepo.issues().search(Issues.Sort.UPDATED, Search.Order.DESC, qualifiers);
     } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
     }
 
     try {
@@ -73,7 +73,7 @@ public class Responsiveness extends Score {
       createdDate = info.iterator().next().json().getString("created_at");
       closedDate = info.iterator().next().json().getString("closed_at");
     } catch (IOException e) {
-      System.out.println(e);
+//      System.out.println(e);
     }
 
     createdDay = Integer.parseInt(createdDate.substring(5, 7));
@@ -112,7 +112,7 @@ public class Responsiveness extends Score {
 //      conn.setRequestProperty("User-Agent", "Mozilla/5.0");
       int responseCode = conn.getResponseCode();
 //      System.out.println("\nSending 'GET' request to URL : " + url);
-      System.out.println("Response Code : " + responseCode);
+//      System.out.println("Response Code : " + responseCode);
       BufferedReader in = new BufferedReader(
               new InputStreamReader(conn.getInputStream()));
       String inputLine;
@@ -122,13 +122,13 @@ public class Responsiveness extends Score {
       }
       in.close();
       //print in String
-      System.out.println(response.toString());
+//      System.out.println(response.toString());
       JSONArray myResponse = new JSONArray(response.toString());
       myResponse.getString(1);
 //      System.out.println(count);
 
     } catch (IOException e) {
-      e.printStackTrace();
+//      e.printStackTrace();
     }
     return null;
   }
@@ -138,6 +138,6 @@ public class Responsiveness extends Score {
     //Responsiveness test = new Responsiveness("walletconnect", "walletconnect-example-dapp");
     //Responsiveness test = new Responsiveness("Tencent", "phxpaxos");
     Responsiveness test = new Responsiveness("okmr-d", "DOFavoriteButton");
-    System.out.println(test.getResponsivenessScore());
+//    System.out.println(test.getResponsivenessScore());
   }
 }

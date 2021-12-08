@@ -181,11 +181,11 @@ public class Score {
 //        System.out.println("RESPONSE = 200");
 //      System.out.println("Response Code " + String.valueOf(respon) + " OK");
       } else if (respon == 301) {
-        System.out.println(response.headers().allValues("Location"));
+//        System.out.println(response.headers().allValues("Location"));
         conUrl = new URL(response.headers().allValues("Location").toString());
         respon = httpreq(conUrl);
       } else if (respon == 403) {
-        System.out.println("url: " + conUrl + "\nUser has hit hourly http request limit. Please wait an hour and try again.");
+//        System.out.println("url: " + conUrl + "\nUser has hit hourly http request limit. Please wait an hour and try again.");
       } else {
 //        System.out.print("In Else block: ");
         String str = "\nurl: " + conUrl + "\nResponse Code not OK: " + String.valueOf(respon);
@@ -193,7 +193,7 @@ public class Score {
       }
     } catch (Exception e) {
 //      System.out.println("Exception in httpreq: ");
-      e.printStackTrace();
+//      e.printStackTrace();
       throw e;
     }
     return respon;

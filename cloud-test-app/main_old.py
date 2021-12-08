@@ -107,7 +107,6 @@ def reset():
 
 @app.route('/reset-confirmed', methods=["GET", "POST"])
 def resetConfirmed():
-    #TODO Make sure to remove SQL database items as well
     if fk.request.method == 'GET':
         return redirect('/')
     gcs = storage.Client()
@@ -208,14 +207,8 @@ def upload():
     if fk.request.method == 'POST':
         # check if the post request has the file part
         if 'files' not in fk.request.files:
-            
             return fk.redirect(fk.request.url)
         uploaded_files = fk.request.files.getlist('files')
-
-
-    
-    
-    
     for uploaded_file in uploaded_files:
         
         if not (uploaded_file):

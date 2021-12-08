@@ -15,7 +15,7 @@ from google.cloud.storage import client
 from werkzeug.utils import redirect, secure_filename
 from google.cloud import secretmanager
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 from flask_restful import Api, Resource, reqparse
 
 app = Flask(__name__)
@@ -41,6 +41,16 @@ def access_secret_version(secret_id, version_id="latest"):
     # Return the decoded payload.
     return response.payload.data.decode('UTF-8')
 os.environ["GITHUB_TOKEN"] = access_secret_version("GITHUB_TOKEN")
+
+def allowed_file(filename):
+    return '.' in filename and (filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
+
+def makeIdentifiers(packagejson) -> str:
+    packagedict = json.loads(packagejson)
+    ID = str(packagedict.get('name')) + str(packagedict.get('version'))
+    version = str(packagedict.get('version'))
+    name = str(packagedict.get('name'))
+    return ID, name, version
 
 def versionChecker(package_version, acceptable_versions) -> bool:
     if acceptable_versions == "ALL_VERSIONS":
@@ -236,6 +246,144 @@ def get_repository(bytes_as_file)->str:
 def homepage():
 
     return render_template('root.html')
+
+@app.route('/home/reset')
+def reset():
+
+    return render_template('reset_warning.html')
+
+@app.route('/home/reset-confirmed', methods=["GET", "POST"])
+def resetConfirmed():
+    if request.method == 'GET':
+        return redirect('/home')
+    gcs = storage.Client()
+
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+    for target_name in blobs:
+        target_blob = bucket.blob(target_name)  #Get the right blob by filename
+        target_blob.delete()
+    
+
+    return render_template('reset_complete.html')
+
+@app.route('/home/upload-package')
+def uploadPackage():
+
+    return render_template('upload_package.html')
+
+@app.route('/home/download-package', methods=['POST'])
+def downloadPackage():
+    if request.method == 'POST':
+        get_package_index = int(request.form['package_index'])
+
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be downloaded from.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+    target_name =  blobs[get_package_index] #Get the blob name
+    target_blob = bucket.blob(target_name)  #Get the right blob by filename
+    bytes = target_blob.download_as_bytes()
+    bytes_as_file = BytesIO(bytes)
+
+    return send_file(bytes_as_file, as_attachment=True, attachment_filename=target_name)
+
+@app.route('/home/view-packages', methods=['GET', 'POST'])
+def viewPackages(curr_page = 1):
+    if request.method == 'POST':
+        curr_page = request.form['next_page']
+    #print("CURR PAGE1: ", curr_page)
+    try:
+        curr_page = int(curr_page)
+    except:
+        curr_page = 1
+    #print("CURR PAGE2: ", curr_page)
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+    all_pages = bucket.list_blobs().pages
+    total_blobs = 0
+    for page in all_pages:
+        total_blobs += page.num_items
+    max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
+    if (curr_page < 1):           #Should we deal with an upper bound?
+        curr_page = 1
+    elif(curr_page > max_pages):
+        curr_page = max_pages
+    max_results = MAX_RESULTS_PER_PAGE * curr_page
+    package_identifiers = []
+    #print("CURR PAGE3: ", curr_page)
+    for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
+        if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
+            #print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
+            blob_tuple = (index_blobs, blob.name)
+            package_identifiers.append(blob_tuple)
+
+
+    return render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
+
+@app.route('/home/upload', methods=['POST'])
+def upload():
+    """Process the uploaded file and upload it to Google Cloud Storage."""
+    # Create a Cloud Storage client.
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'files' not in request.files:
+            return redirect(request.url)
+        uploaded_files = request.files.getlist('files')
+    for uploaded_file in uploaded_files:
+        
+        if not (uploaded_file):
+            return 'No file uploaded.', 400
+        if not (allowed_file(uploaded_file.filename)):
+            return 'Unallowed file type uploaded. Only .zip files are accepted at this time.', 400            
+        if uploaded_file.filename == '':
+            return 'No selected file', 400 
+
+        uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
+        if uploaded_file.filename == '':
+            return 'secure_filename broke and returned an empty filename', 400 
+
+        ############################ CHANGE LATER
+        orig_data = uploaded_file.read()
+        orig_contenttype = uploaded_file.content_type
+
+        json_as_string = zipLogic(uploaded_file)
+        fileID, fileName, fileVersion = makeIdentifiers(json_as_string)
+        file_ID = file_ID.replace("_", "")  #Ensure underscores are only used in the final filename
+        file_name = file_name.replace("_", "")
+        final_file_name = secure_filename(file_name + "_" + file_ID + "_" + fileVersion + ".zip")
+        uploaded_file.filename = final_file_name
+
+
+
+        ########################################################################################
+        #TODO Everything after this needs to be changed to reflect scoring and file ID checking.
+ 
+        print("SUBPROCESS OUTPUT:   ", subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True))
+
+
+
+
+
+        # Create a new blob and upload the file's content.
+        blob = bucket.blob(uploaded_file.filename)
+
+        blob.upload_from_string(
+            orig_data,
+            content_type=orig_contenttype
+        )
+    return render_template('upload_package_success.html')
+
+
 
 class APIHome(Resource):
     def get(self):

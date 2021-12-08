@@ -352,7 +352,6 @@ def upload():
         if uploaded_file.filename == '':
             return 'secure_filename broke and returned an empty filename', 400 
 
-        ############################ CHANGE LATER
         orig_data = uploaded_file.read()
         orig_contenttype = uploaded_file.content_type
 

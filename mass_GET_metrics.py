@@ -1,13 +1,13 @@
-""" import requests
+import requests
 
 total_elapsed = 0
 response_times_ms = []
 
 for i in range(10):
-    result = requests.get("https://ece-461-project-2-team-4.uc.r.appspot.com/package/package6")
+    result = requests.get("https://ece-461-project-2-team-4.uc.r.appspot.com/package/ID10")
     response_times_ms.append(result.elapsed.total_seconds() *1000)
 
-print(response_times_ms) """
+print(response_times_ms) 
 
 """ import asyncio
 import aiohttp
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
 
 
-import asyncio
+"""import asyncio
 import aiohttp
 
 
@@ -54,4 +54,4 @@ if __name__ == "__main__":
     coros = [asyncio.Task(get_status(url)) for url in urls]
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.wait(coros))
-    loop.close()
+    loop.close()"""

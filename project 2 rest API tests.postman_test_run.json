@@ -1,18 +1,18 @@
 {
-	"id": "16991c65-e3fb-482c-85df-b03c1d9c3d61",
+	"id": "30b8e0a0-ce7b-4a19-8e57-e2e22df739f2",
 	"name": "project 2 rest API tests",
-	"timestamp": "2021-12-09T03:39:45.381Z",
+	"timestamp": "2021-12-09T04:25:14.637Z",
 	"collection_id": "18631555-055b7a24-fafd-40f8-8cb3-21e90877d35e",
 	"folder_id": 0,
 	"environment_id": "0",
-	"totalPass": 59,
+	"totalPass": 60,
 	"totalFail": 0,
 	"results": [
 		{
 			"id": "b669c7bf-b724-43fb-8302-01f14c06d973",
 			"name": "Registry Reset",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/reset",
-			"time": 5372,
+			"time": 423,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -32,7 +32,7 @@
 				}
 			},
 			"times": [
-				5372
+				423
 			],
 			"allTests": [
 				{
@@ -72,7 +72,7 @@
 			"id": "b74f62db-eef9-46e3-a21b-2b5ec2306c2a",
 			"name": "Package Ingestion package6",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 94483,
+			"time": 94721,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -102,7 +102,7 @@
 				}
 			},
 			"times": [
-				94483
+				94721
 			],
 			"allTests": [
 				{
@@ -117,7 +117,7 @@
 			"id": "4969df34-e416-486a-a8b2-277a9cb28c85",
 			"name": "Package Create package1",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 5018,
+			"time": 511,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -147,7 +147,7 @@
 				}
 			},
 			"times": [
-				5018
+				511
 			],
 			"allTests": [
 				{
@@ -162,7 +162,7 @@
 			"id": "7ab36d6e-6c54-4f3f-86a7-84fe33cf62e8",
 			"name": "Package Create package3",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 290,
+			"time": 339,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -192,7 +192,7 @@
 				}
 			},
 			"times": [
-				290
+				339
 			],
 			"allTests": [
 				{
@@ -207,7 +207,7 @@
 			"id": "afc1abee-b5b2-41f7-83ab-157a5cdf014e",
 			"name": "Package Create package3 for testing",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 298,
+			"time": 292,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -237,7 +237,7 @@
 				}
 			},
 			"times": [
-				298
+				292
 			],
 			"allTests": [
 				{
@@ -252,7 +252,7 @@
 			"id": "3eff82c4-bc17-4485-930c-7e7546be2c34",
 			"name": "Package Create package4",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 635,
+			"time": 269,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -282,7 +282,7 @@
 				}
 			},
 			"times": [
-				635
+				269
 			],
 			"allTests": [
 				{
@@ -297,7 +297,7 @@
 			"id": "9a50bda7-4280-4f36-a01d-de56d0cf66aa",
 			"name": "Package Create package5",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 249,
+			"time": 223,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -327,7 +327,7 @@
 				}
 			},
 			"times": [
-				249
+				223
 			],
 			"allTests": [
 				{
@@ -342,7 +342,7 @@
 			"id": "0aef7125-b08a-4317-9a24-fd619ea6ab14",
 			"name": "Package Create Already existing",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 319,
+			"time": 208,
 			"responseCode": {
 				"code": 403,
 				"name": "Forbidden"
@@ -362,7 +362,7 @@
 				}
 			},
 			"times": [
-				319
+				208
 			],
 			"allTests": [
 				{
@@ -375,7 +375,7 @@
 			"id": "1b4e5768-4be0-43ff-9819-3babda0111b7",
 			"name": "Package Create Unavailable packageID",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 195,
+			"time": 254,
 			"responseCode": {
 				"code": 403,
 				"name": "Forbidden"
@@ -395,7 +395,7 @@
 				}
 			},
 			"times": [
-				195
+				254
 			],
 			"allTests": [
 				{
@@ -408,7 +408,7 @@
 			"id": "55b5ae93-4272-49a6-8d3c-257b1bf35114",
 			"name": "Package Create Incomplete data",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 864,
+			"time": 273,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -428,7 +428,7 @@
 				}
 			},
 			"times": [
-				864
+				273
 			],
 			"allTests": [
 				{
@@ -441,7 +441,7 @@
 			"id": "2e5606aa-7663-434b-94e8-1376f283fa34",
 			"name": "Package Create invalid Base64 string",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package",
-			"time": 282,
+			"time": 223,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -461,7 +461,7 @@
 				}
 			},
 			"times": [
-				282
+				223
 			],
 			"allTests": [
 				{
@@ -472,9 +472,9 @@
 		},
 		{
 			"id": "705958ec-cd2a-49e9-b37b-811348cb034f",
-			"name": "Get Packages",
+			"name": "Get Packages no body. returns entire storage",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/packages",
-			"time": 286,
+			"time": 326,
 			"responseCode": {
 				"code": 201,
 				"name": "Created"
@@ -489,7 +489,34 @@
 				}
 			},
 			"times": [
-				286
+				326
+			],
+			"allTests": [
+				{
+					"status code should be 201": true
+				}
+			]
+		},
+		{
+			"id": "94d1106b-8bb7-4f05-b3fe-5ade4af429b3",
+			"name": "Get Packages with specific version",
+			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/packages",
+			"time": 287,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"status code should be 201": true
+			},
+			"testPassFailCounts": {
+				"status code should be 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				287
 			],
 			"allTests": [
 				{
@@ -501,7 +528,7 @@
 			"id": "c39c2d24-060d-430d-85f0-d407e85be4dd",
 			"name": "Package Retrieve package1",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package1",
-			"time": 304,
+			"time": 334,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -521,7 +548,7 @@
 				}
 			},
 			"times": [
-				304
+				334
 			],
 			"allTests": [
 				{
@@ -534,7 +561,7 @@
 			"id": "6fc262fe-9ea4-449f-b953-c98369e01c9f",
 			"name": "Package Retrieve package5",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package5",
-			"time": 224,
+			"time": 182,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -554,7 +581,7 @@
 				}
 			},
 			"times": [
-				224
+				182
 			],
 			"allTests": [
 				{
@@ -567,7 +594,7 @@
 			"id": "02e15f2f-e164-441a-84ff-02ed4a19f61d",
 			"name": "Package Retrieve ingested package",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package6",
-			"time": 333,
+			"time": 420,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -582,7 +609,7 @@
 				}
 			},
 			"times": [
-				333
+				420
 			],
 			"allTests": [
 				{
@@ -594,7 +621,7 @@
 			"id": "b4267640-1681-47a1-b389-1c284f1b3e92",
 			"name": "Package Retrieve Non-existing Package",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package100",
-			"time": 330,
+			"time": 169,
 			"responseCode": {
 				"code": 500,
 				"name": "Internal Server Error"
@@ -614,7 +641,7 @@
 				}
 			},
 			"times": [
-				330
+				169
 			],
 			"allTests": [
 				{
@@ -627,7 +654,7 @@
 			"id": "1f22c493-e602-478e-9332-e808be5af4a8",
 			"name": "Package Rate Archived Repo",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package1/rate",
-			"time": 2092,
+			"time": 3884,
 			"responseCode": {
 				"code": 500,
 				"name": "Internal Server Error"
@@ -642,7 +669,7 @@
 				}
 			},
 			"times": [
-				2092
+				3884
 			],
 			"allTests": [
 				{
@@ -654,7 +681,7 @@
 			"id": "b3722c0f-715f-49fc-b22c-e677644d953e",
 			"name": "Package Rate non-existent package",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package1000/rate",
-			"time": 172,
+			"time": 429,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -669,7 +696,7 @@
 				}
 			},
 			"times": [
-				172
+				429
 			],
 			"allTests": [
 				{
@@ -681,7 +708,7 @@
 			"id": "8b6c7564-55f6-49cf-a9e1-52c140e527bc",
 			"name": "Package Rate repo with Main branch",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package3/rate",
-			"time": 14410,
+			"time": 18583,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -696,7 +723,7 @@
 				}
 			},
 			"times": [
-				14410
+				18583
 			],
 			"allTests": [
 				{
@@ -708,7 +735,7 @@
 			"id": "886b5ab3-c7e2-4541-9f77-aecfe995cea7",
 			"name": "Package Rate repo with Master branch",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package5/rate",
-			"time": 4944,
+			"time": 8265,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -723,7 +750,7 @@
 				}
 			},
 			"times": [
-				4944
+				8265
 			],
 			"allTests": [
 				{
@@ -735,7 +762,7 @@
 			"id": "09ce1f37-0b3e-4601-b9bb-f986d87b90e1",
 			"name": "Package Rate ingested repository",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package6/rate",
-			"time": 93528,
+			"time": 93445,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -750,7 +777,7 @@
 				}
 			},
 			"times": [
-				93528
+				93445
 			],
 			"allTests": [
 				{
@@ -762,7 +789,7 @@
 			"id": "be173be5-10d5-4de1-b374-2f8f58de13c7",
 			"name": "Package Update via base64 string",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package3",
-			"time": 349,
+			"time": 412,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -777,7 +804,7 @@
 				}
 			},
 			"times": [
-				349
+				412
 			],
 			"allTests": [
 				{
@@ -789,7 +816,7 @@
 			"id": "40620f15-c263-4d3c-8028-a2ccaced4d7e",
 			"name": "Package Update via Ingestion",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/forTesting",
-			"time": 17678,
+			"time": 19110,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -804,7 +831,7 @@
 				}
 			},
 			"times": [
-				17678
+				19110
 			],
 			"allTests": [
 				{
@@ -816,7 +843,7 @@
 			"id": "0ee63713-c715-437c-835d-fd8d38fe59c1",
 			"name": "Package Update non-existing package",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/forTests",
-			"time": 195,
+			"time": 194,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -831,7 +858,7 @@
 				}
 			},
 			"times": [
-				195
+				194
 			],
 			"allTests": [
 				{
@@ -843,7 +870,7 @@
 			"id": "fb3afd29-258c-4c0b-bbdd-23a9e1787004",
 			"name": "Delete all package versions ",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/byName/chalk",
-			"time": 532,
+			"time": 277,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -863,7 +890,7 @@
 				}
 			},
 			"times": [
-				532
+				277
 			],
 			"allTests": [
 				{
@@ -876,7 +903,7 @@
 			"id": "e769f51a-b76b-454b-bcef-0e6e7b4b9ec2",
 			"name": "Delete all package versions Invalid",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/byName/Fash",
-			"time": 304,
+			"time": 441,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -896,7 +923,7 @@
 				}
 			},
 			"times": [
-				304
+				441
 			],
 			"allTests": [
 				{
@@ -909,7 +936,7 @@
 			"id": "084a6b97-08e9-4710-a4f1-e65bc0af1481",
 			"name": "Delete package version",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package1",
-			"time": 173,
+			"time": 217,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
@@ -929,7 +956,7 @@
 				}
 			},
 			"times": [
-				173
+				217
 			],
 			"allTests": [
 				{
@@ -942,7 +969,7 @@
 			"id": "83929bb2-5748-4f72-bf02-46b252d55664",
 			"name": "Delete package version Invalid",
 			"url": "https://ece-461-project-2-team-4.uc.r.appspot.com/package/package100",
-			"time": 179,
+			"time": 224,
 			"responseCode": {
 				"code": 400,
 				"name": "Bad Request"
@@ -962,7 +989,7 @@
 				}
 			},
 			"times": [
-				179
+				224
 			],
 			"allTests": [
 				{
@@ -973,7 +1000,7 @@
 		}
 	],
 	"count": 1,
-	"totalTime": 244073,
+	"totalTime": 244970,
 	"collection": {
 		"requests": [
 			{
@@ -1026,6 +1053,10 @@
 			},
 			{
 				"id": "705958ec-cd2a-49e9-b37b-811348cb034f",
+				"method": "POST"
+			},
+			{
+				"id": "94d1106b-8bb7-4f05-b3fe-5ade4af429b3",
 				"method": "POST"
 			},
 			{

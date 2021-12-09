@@ -338,23 +338,16 @@ def upload():
         uploaded_files = request.files.getlist('files')
     for uploaded_file in uploaded_files:
         
-        if not uploaded_file:
+        if not (uploaded_file):
             return 'No file uploaded.', 400
-        
+        if not (allowed_file(uploaded_file.filename)):
+            return 'Unallowed file type uploaded. Only .zip files are accepted at this time.', 400            
+        if uploaded_file.filename == '':
+            return 'No selected file', 400 
 
-
-        #Upload rate information SQL Database
-        conn = connecttoDB()
-        cursor = conn.cursor()
-        data = parseJson("output.json")
-        try:
-            for entry in data["scores"]:
-                cursor.execute("INSERT INTO scores_table (url, ramp_up_score, correctness_score, bus_factor_score, responsive_maintainer_score, license_score, dependency_score) VALUES(%s, %s, %s, %s, %s, %s, %s)", (entry["url"], entry["rampup"], entry["correctness"], entry["busfactor"], entry["contributors"], entry["license"], entry["dependency"]))
-
-            conn.commit()
-            pass
-        except:
-            pass
+        uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
+        if uploaded_file.filename == '':
+            return 'secure_filename broke and returned an empty filename', 400 
 
         orig_data = uploaded_file.read()
         orig_contenttype = uploaded_file.content_type
@@ -782,20 +775,6 @@ api.add_resource(HandlePackageByName, '/package/byName/<string:packageName>')
 api.add_resource(HandlePackageById, '/package/<string:packageId>')
 api.add_resource(Rates, '/package/<string:packageId>/rate')
 api.add_resource(RegistryReset, '/reset')
-
-
-
-
-class UploadPackage(fkr.Resource):
-    def post(self):
-        some_json = fkr.request.get_json()
-        file_string = some_json['data']['Content']
-        file_object = base64.b64encode(file_string.read()).decode('utf-8')
-        print(file_object)
-        print(type(file_object))
-
-api.add_resource(UploadPackage, '/api/upload')
-
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)

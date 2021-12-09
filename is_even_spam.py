@@ -19,7 +19,7 @@ from google.cloud import secretmanager
 CLOUD_STORAGE_BUCKET = 'package_storage'
 gcs = storage.Client()
 bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
-is_even_ID = 7946
+is_even_ID = 0
 is_even_zip = open("is-even_package3_0.1.2.zip", "rb")
 while is_even_ID < 50000:
     final_file_name = 'is-even_ID' + str(is_even_ID) + '_0.1.2.zip'

@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<style>
+    body {
+      text-align: center;
+      font-family: "Helvetica";
+     }
+    
+    #page-wrap { 
+      position: absolute; 
+      left: 50%; 
+      width: 800px;
+      margin-left: -400px;
+    }
+    .button {
+            font-family: "Helvetica";
+        }
+    </style>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,22 +26,22 @@
     {% for id, package in package_identifiers %}
     <p>[{{id}}]   {{ package }} </p>
     {% endfor %}
-
+    <h3>&nbsp;</h3>
     <p> Viewing Page {{ curr_page }} of {{ max_pages }} </p>
 
-    <form method="POST" action="/view-packages" enctype="multipart/form-data">
+    <form class="button" method="POST" action="/home/view-packages" enctype="multipart/form-data">
         <label for="next_page">Go to page: </label>
         <input type="number" name="next_page">
         <input type="submit">
     </form>
-
-    <form method="POST" action="/download-package" enctype="multipart/form-data">
+    &nbsp;
+    <form class="button" method="POST" action="/home/download-package" enctype="multipart/form-data">
         <label for="package_index">Download Package at ID: </label>
         <input type="number" name="package_index">
         <input type="submit">
     </form>
     <br>
-    <button onclick="location.href='/'" type="button">
+    <button class="button" onclick="location.href='/home'" type="button">
         Return Home
     </button>
 

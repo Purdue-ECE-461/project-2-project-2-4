@@ -30,9 +30,9 @@ public class CommandExecutor {
     CommandExecutor commandExecutor=new CommandExecutor();
     try{
       String test = commandExecutor.exceuteCommand("npm view " + args[0] + " repository.url", "./node-v16.13.0-darwin-x64/bin/");
-      System.out.println("TEST: " + test);
+//      System.out.println("TEST: " + test);
     } catch (IOException e) {
-      System.out.println("npm processbuilder could not find directory " + "./node-v14.18.0-linux-x64/bin/");
+//      System.out.println("npm processbuilder could not find directory " + "./node-v14.18.0-linux-x64/bin/");
     }
   }
 }

@@ -1,54 +1,65 @@
 package com.ECE461P1.app;
 
-import com.ECE461P1.app.scores.Score;
+import com.ECE461P1.app.scores.PackageJson;
+import com.google.gson.Gson;
 import org.eclipse.jgit.api.Git;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Scanner;
+import java.util.List;
 
 public class App
 {
   public static Git git;
-  static final Logger logger = LoggerFactory.getLogger(Score.class);
+  //  static final Logger logger = LoggerFactory.getLogger(Score.class);
 
   public static void main (String[] args) {
-    Url[] urls = parseURLS(new File(args[0]));
-    for (Url url : urls){
-      if(url.correctnessScore == null){continue;}//com.ECE461P1.app.scores where not initalized because http request limit has been reached
-      url.correctnessScore.getCorrectnessScore();
-      url.responseScore.getResponsivenessScore();
-      url.busScore.getBusFactor();
-      url.licenseScore.getLicenseScore();
-      url.rampScore.getRampUpTimeScore();
+
+    StringBuilder jsonInput = new StringBuilder();
+    for (String s : args) {
+      jsonInput.append(s);
     }
-    logger.warn("starting");
-    
-    System.out.println("\nURL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE");
-    Arrays.sort(urls, Comparator.comparingInt(url ->
-      (url!=null && url.correctnessScore!=null) ? (int) url.calcNetScore() : 0
-    ));
-    for (Url url : urls) {System.out.println(url);}
-  }
-  public static Url[] parseURLS(File urlFile) {
-    ArrayList<Url> urls = new ArrayList<Url>();
-    Scanner sc;
-    try{
-      sc = new Scanner(urlFile);
-      while (sc.hasNextLine()){
-        urls.add(new Url(sc.nextLine()));
-      }
-    }catch(FileNotFoundException e){
-      System.out.println("File not Found: " + urlFile);
-      return null;
-    }
-    sc.close();
-    Url[] arr = urls.toArray(new Url[urls.size()]);
-    return arr;
+    JsonHandler jsonHandler = new JsonHandler(jsonInput.toString());
+
+//    System.out.println(jsonInput.toString());
+    PackageJson packageJson = jsonHandler.getPackageJson();
+//    try {
+//      packageJson = new Gson().fromJson(a, PackageJson.class);
+//    } catch (Exception e){
+////      e.printStackTrace();
+//    }
+
+    RepoHandler repo = new RepoHandler(packageJson);
+
+    RepoScores rScores = new RepoScores();
+
+    repo.correctnessScore.getCorrectnessScore();
+    repo.responseScore.getResponsivenessScore();
+    repo.busScore.getBusFactor();
+    repo.licenseScore.getLicenseScore();
+    repo.rampScore.getRampUpTimeScore();
+    repo.depScore.getDependencyRatio();
+    repo.calcNetScore();
+
+    rScores.correctnessScore = repo.correctnessScore.getScore();
+    rScores.responsivenessScore = repo.responseScore.getScore();
+    rScores.busFactor = repo.busScore.getScore();
+    rScores.licenseScore = repo.licenseScore.getScore();
+    rScores.rampUpTimeScore = repo.rampScore.getScore();
+    rScores.dependencyRatio = repo.depScore.getScore();
+    rScores.netScore = repo.calcNetScore();
+
+    rScores.url = repo.orgUrl;
+
+    RepoScoresParent rScoresParent = new RepoScoresParent();
+    List<RepoScores> rScoresList = new ArrayList<>();
+    rScoresList.add(rScores);
+    rScoresParent.Scores = rScoresList;
+
+    Gson gson = new Gson();
+
+    String result = gson.toJson(rScoresParent);
+
+//    System.out.println(result);
+
   }
 }

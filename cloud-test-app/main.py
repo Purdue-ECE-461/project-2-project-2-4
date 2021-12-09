@@ -14,9 +14,9 @@ from google.cloud import storage
 from google.cloud.storage import client
 from werkzeug.utils import redirect, secure_filename
 from google.cloud import secretmanager
-
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
+import requests
 
 app = Flask(__name__)
 api = Api(app)
@@ -26,7 +26,6 @@ CLOUD_STORAGE_BUCKET = os.environ['CLOUD_STORAGE_BUCKET']
 #APPLICATION_ID = os.environ['APPLICATION_ID']
 MAX_RESULTS_PER_PAGE = 10
 ALLOWED_EXTENSIONS = {'zip'}
-
 
 def access_secret_version(secret_id, version_id="latest"):
     # Create the Secret Manager client.
@@ -55,7 +54,6 @@ def zipLogic(zip):
     names_in_zip = zip_file.namelist()
     for curr_file in names_in_zip:
         if curr_file.endswith('json') and ('package.json' in curr_file):
-            #print(curr_file, "\n\n\n")
             zip_file_jsons.append(zip_file.open(curr_file).read())
     zip_file.close()
     return zip_file_jsons[0].decode("utf-8")
@@ -75,7 +73,6 @@ def format_json_string(json_as_string)->str:
 
     try:
         data['dependencies'] = list(jsonData['dependencies'].values())
-        data['dependencies'] = [s.replace("^", "") for s in data['dependencies']]
     except:
         pass
 
@@ -177,22 +174,13 @@ class UploadPackage(Resource):
             # Read payload as json
             input_json = request.get_json()
 
-            # parse the metadata and data fields in the request
-            file_string = input_json['data']['Content']
             file_name = str(input_json['metadata']['Name'])
             file_ID = str(input_json['metadata']['ID'])
             file_version = str(input_json['metadata']['Version'])
-
             file_ID = file_ID.replace("_", "")  #Ensure underscores are only used in the final filename
             file_name = file_name.replace("_", "")
-
-            #TODO Test Rate to ensure > 0.5
-
             final_file_name = secure_filename(file_name + "_" + file_ID + "_" + file_version + ".zip") #Set filename for storage on GCP (Storage and SQL)
-            decoded_data = base64.b64decode(bytes(file_string, 'utf-8')) #Make into bytes
             
-
-            uploaded_file = BytesIO(decoded_data)
             # Create a new blob and upload the file's content.
             blob = bucket.blob(final_file_name)
 
@@ -201,11 +189,54 @@ class UploadPackage(Resource):
                 return {"message":"Package already exists."}, 403
 
             # if ID already being used by another package
-            for blob in bucket.list_blobs():
-                 if "_" + file_ID + "_" in blob.name:
-                     return {"message":"Package ID already taken."}, 403
+            for presentBlob in bucket.list_blobs():
+                if "_" + file_ID + "_" in presentBlob.name:
+                    return {"message":"Package ID already taken."}, 403
 
-            blob.upload_from_string(uploaded_file.read(), content_type='application/zip')
+
+            # Upload by package Create or Ingestion
+            if 'Content' in input_json['data']:
+                # parse the metadata and data fields in the request
+                file_string = input_json['data']['Content']
+
+                decoded_data = base64.b64decode(bytes(file_string, 'utf-8')) # Make into bytes
+                uploaded_file = BytesIO(decoded_data)
+
+                blob.upload_from_string(uploaded_file.read(), content_type='application/zip')
+            elif 'URL' in input_json['data']:
+                extraMain = "/zipball/main"
+                extraMaster = "/zipball/master"
+                r = requests.get(input_json['data']['URL'] + extraMain)
+
+                if r.status_code != 200:
+                    r = requests.get(input_json['data']['URL'] + extraMaster)
+
+                if r.status_code != 200:
+                    return {"message":"URL not supported. Package not ingestible."}, 400
+
+                decoded_data = r.content
+                uploaded_file = BytesIO(decoded_data)
+                json_as_string = zipLogic(uploaded_file)
+                
+                try:
+                    output = subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True)
+                except:
+                    return {"message":"Malformed request. It is either package.json does not exist or does not contain a repository field"}, 400
+
+                try:    
+                    output_json =  output.stdout.decode("utf-8")
+                    data = json.loads(output_json)['Scores'][0]
+                    print(data)
+
+                    if data['busFactor'] >= 0.5 and data['correctnessScore'] >= 0.5 and data['rampUpTimeScore'] >= 0.5 and data['responsivenessScore'] >= 0.5 and data['licenseScore'] >= 0.5 and data['dependencyRatio'] >= 0.5:
+                        blob.upload_from_string(decoded_data, content_type='application/zip')
+                    else:
+                        return {"message":"Package is not ingestible. One or more scores less than 0.5."}, 400
+                except:
+                    return {"message":"Package is not ingestible. The rating system choked so could not validate URL scores"}, 400
+            else:
+                return {"message":"Malformed request."}, 400
+            
             responseJson = {
                 "Name": file_name,
                 "Version": file_version,
@@ -254,7 +285,6 @@ class HandlePackageById(Resource):
                 if "_" + packageId + "_" in blob.name:
                     bytes_as_file = BytesIO(blob.download_as_bytes())
                     fileName, fileId, fileVersion = blob.name.split('_') # get the metadata from the blob name
-                    #fileVersion = fileVersion.removesuffix('.zip') # remove .zip from fileversion
                     fileVersion = fileVersion.replace(".zip", "")
 
                     packageContent = base64.b64encode(bytes_as_file.read())
@@ -275,7 +305,7 @@ class HandlePackageById(Resource):
                     return response, 200
             return response, 500
         except:
-            return response, 500
+            return response, 500 
 
     def put(self, packageId):
         try:
@@ -287,23 +317,61 @@ class HandlePackageById(Resource):
             input_json = request.get_json()
 
             # parse the metadata and data fields in the request
-            file_string = input_json['data']['Content']
             file_name = str(input_json['metadata']['Name'])
             file_ID = str(input_json['metadata']['ID'])
             file_version = str(input_json['metadata']['Version'])
+            final_file_name = file_name + "_" + file_ID + "_" + file_version + ".zip" #Set filename for storage on GCP (Storage and SQL)
+            final_file_name = secure_filename(final_file_name) #Set filename for storage on GCP (Storage and SQL)
 
             if file_ID != packageId:
-                return {"message":"Malformed request."}, 400
+                return {"message":"package ID in metadata does not match package ID in request."}, 400
 
-            final_file_name = file_name + "_" + file_ID + "_" + file_version + ".zip" #Set filename for storage on GCP (Storage and SQL)
-            decoded_data = base64.b64decode(bytes(file_string, 'utf-8')) #Make into bytes
-            uploaded_file = BytesIO(decoded_data)
+            for blob in bucket.list_blobs():
+                if blob.name == final_file_name:
+                    if 'Content' in input_json['data']:
+                        file_string = input_json['data']['Content']
+                        decoded_data = base64.b64decode(bytes(file_string, 'utf-8')) #Make into bytes
+                        uploaded_file = BytesIO(decoded_data)
 
-            # get blob and update the file's content.
-            blob = bucket.get_blob(final_file_name)
-            blob.upload_from_string(uploaded_file.read())
+                        # get blob and update the file's content.
+                        blob = bucket.get_blob(final_file_name)
+                        blob.upload_from_string(uploaded_file.read(), content_type='application/zip')
+                    elif 'URL' in input_json['data']:
+                        extraMain = "/zipball/main"
+                        extraMaster = "/zipball/master"
+                        r = requests.get(input_json['data']['URL'] + extraMain)
 
-            return "",200
+                        if r.status_code != 200:
+                            r = requests.get(input_json['data']['URL'] + extraMaster)
+
+                        if r.status_code != 200:
+                            return {"message":"URL not supported. Update unsuccessful."}, 400
+
+                        decoded_data = r.content
+                        uploaded_file = BytesIO(decoded_data)
+                        json_as_string = zipLogic(uploaded_file)
+
+                        try:
+                            output = subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True)
+                        except:
+                            return {"message":"Malformed request. It is either package.json does not exist or does not contain a repository field"}, 400
+                        
+                        try:
+                            output_json =  output.stdout.decode("utf-8")
+                            data = json.loads(output_json)['Scores'][0]
+                            
+                            if data['busFactor'] >= 0.5 and data['correctnessScore'] >= 0.5 and data['rampUpTimeScore'] >= 0.5 and data['responsivenessScore'] >= 0.5 and data['licenseScore'] >= 0.5 and data['dependencyRatio'] >= 0.5:
+                                # get blob and update the file's content.
+                                blob = bucket.get_blob(final_file_name)
+                                blob.upload_from_string(uploaded_file.read(), content_type='application/zip')
+                            else:
+                                return {"message":"Update unsuccessful. One or more scores less than 0.5."}, 400
+                        except:
+                            return {"message":"Update unsuccessful. The rating system choked so could not validate URL scores"}, 400
+                    else:
+                        return {"message":"Malformed request."}, 400
+                    return "", 200
+            return {"message":"No such package exists."}, 400
         except:
             return {"message":"Malformed request."}, 400
 
@@ -338,11 +406,8 @@ class Rates(Resource):
                     bytes_as_file = BytesIO(blob.download_as_bytes())
                     json_as_string = zipLogic(bytes_as_file)
 
-                    #output = subprocess.run(["java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True)
-
                     # use this if you are deploying
                     output = subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True)
-                    print(output)
                     output_json =  output.stdout.decode("utf-8")
                     data = json.loads(output_json)['Scores'][0]
 

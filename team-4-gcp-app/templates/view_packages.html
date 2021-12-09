@@ -29,16 +29,16 @@
     <h3>&nbsp;</h3>
     <p> Viewing Page {{ curr_page }} of {{ max_pages }} </p>
 
-    <form class="button" method="POST" action="/home/view-packages" enctype="multipart/form-data">
+    <form title="page_select" class="button" method="POST" action="/home/view-packages" enctype="multipart/form-data">
         <label for="next_page">Go to page: </label>
-        <input type="number" name="next_page">
-        <input type="submit">
+        <input title="page_select" type="number" name="next_page">
+        <input title="page_select" type="submit">
     </form>
     &nbsp;
-    <form class="button" method="POST" action="/home/download-package" enctype="multipart/form-data">
+    <form title="package_select" class="button" method="POST" action="/home/download-package" enctype="multipart/form-data">
         <label for="package_index">Download Package at ID: </label>
-        <input type="number" name="package_index">
-        <input type="submit">
+        <input title="package_select" type="number" name="package_index">
+        <input title="package_select" type="submit">
     </form>
     <br>
     <button class="button" onclick="location.href='/home'" type="button">

@@ -320,7 +320,6 @@ def viewPackages(curr_page = 1):
             blob_tuple = (index_blobs, blob.name)
             package_identifiers.append(blob_tuple)
 
-
     return render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
 
 @app.route('/home/upload', methods=['POST'])
@@ -355,21 +354,10 @@ def upload():
 
         json_as_string = zipLogic(uploaded_file)
         fileID, fileName, fileVersion = makeIdentifiers(json_as_string)
-        file_ID = file_ID.replace("_", "")  #Ensure underscores are only used in the final filename
-        file_name = file_name.replace("_", "")
+        file_ID = fileID.replace("_", "")  #Ensure underscores are only used in the final filename
+        file_name = fileName.replace("_", "")
         final_file_name = secure_filename(file_name + "_" + file_ID + "_" + fileVersion + ".zip")
         uploaded_file.filename = final_file_name
-
-
-
-        ########################################################################################
-        #TODO Everything after this needs to be changed to reflect scoring and file ID checking.
- 
-        print("SUBPROCESS OUTPUT:   ", subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True))
-
-
-
-
 
         # Create a new blob and upload the file's content.
         blob = bucket.blob(uploaded_file.filename)
@@ -379,8 +367,6 @@ def upload():
             content_type=orig_contenttype
         )
     return render_template('upload_package_success.html')
-
-
 
 class APIHome(Resource):
     def get(self):

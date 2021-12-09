@@ -14,7 +14,8 @@ from google.cloud import storage
 from google.cloud.storage import client
 from werkzeug.utils import redirect, secure_filename
 from google.cloud import secretmanager
-from flask import Flask, request
+
+from flask import Flask, request, render_template, send_file
 from flask_restful import Api, Resource, reqparse
 import requests
 
@@ -41,6 +42,150 @@ def access_secret_version(secret_id, version_id="latest"):
     return response.payload.data.decode('UTF-8')
 os.environ["GITHUB_TOKEN"] = access_secret_version("GITHUB_TOKEN")
 
+def allowed_file(filename):
+    return '.' in filename and (filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
+
+def makeIdentifiers(packagejson) -> str:
+    packagedict = json.loads(packagejson)
+    ID = str(packagedict.get('name')) + str(packagedict.get('version'))
+    version = str(packagedict.get('version'))
+    name = str(packagedict.get('name'))
+    return ID, name, version
+
+def versionChecker(package_version, acceptable_versions) -> bool:
+    if acceptable_versions == "ALL_VERSIONS":
+        return True
+    if package_version == acceptable_versions:
+        return True
+    if "*" in acceptable_versions:
+        return True
+    major, minor, patch = package_version.split(".")
+    major_int = int(major)
+    minor_int = int(minor)
+    patch_int = int(patch)
+    minor_and_patch = int(minor + patch)
+    if "^" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("^", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_minor_int = int(accept_minor)
+        accept_major_int = int(accept_major)
+        accept_patch_int = int(accept_patch)
+        if (major == accept_major_int):
+            if minor_int > accept_minor_int:
+                return True
+            if minor_int < accept_minor_int:
+                return False
+            if patch_int >= accept_patch_int:
+                return True
+        return False
+    if "~" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("~", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        if (major == accept_major) and (minor == accept_minor) and (patch_int >= accept_patch_int):
+            return True 
+        return False
+    if ">" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace(">", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return True 
+        if (major_int < accept_major_int):
+            return False
+        if minor_int > accept_minor_int:
+            return True 
+        if minor_int < accept_minor_int:
+            return False
+        if patch_int > accept_patch_int:
+            return True
+        return False
+    if ">=" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace(">=", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return True 
+        if (major_int < accept_major_int):
+            return False
+        if minor_int > accept_minor_int:
+            return True 
+        if minor_int < accept_minor_int:
+            return False
+        if patch_int >= accept_patch_int:
+            return True
+        return False
+    if "<" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("<", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return False
+        if (major_int < accept_major_int):
+            return True
+        if minor_int > accept_minor_int:
+            return False 
+        if minor_int < accept_minor_int:
+            return True
+        if patch_int < accept_patch_int:
+            return True
+        return False
+    if "<=" in acceptable_versions:
+        acceptable_versions = acceptable_versions.replace("<=", "")
+        accept_major, accept_minor, accept_patch = acceptable_versions.split(".")
+        accept_patch_int = int(accept_patch)
+        accept_major_int = int(accept_major)
+        accept_minor_int = int(accept_minor)
+        if (major_int > accept_major_int):
+            return False
+        if (major_int < accept_major_int):
+            return True
+        if minor_int > accept_minor_int:
+            return False 
+        if minor_int < accept_minor_int:
+            return True
+        if patch_int <= accept_patch_int:
+            return True
+        return False
+    if "-" in acceptable_versions:
+        lhs, rhs = acceptable_versions.split("-")
+        lhs_major, lhs_minor, lhs_patch = lhs.split(".")
+        lhs_major = int(lhs_major)
+        lhs_minor = int(lhs_minor)
+        lhs_patch = int(lhs_patch)
+        rhs_major, rhs_minor, rhs_patch = rhs.split(".")
+        rhs_major = int(rhs_major)
+        rhs_minor = int(rhs_minor)
+        rhs_patch = int(rhs_patch)
+
+        if (major_int > lhs_major) and (major_int < rhs_major):
+            return True 
+        if (major_int < lhs_major) or (major_int > rhs_major):
+            return False
+        if (major_int == lhs_major):
+            if minor_int > lhs_minor:
+                return True 
+            if minor_int < lhs_minor:
+                return False
+            if patch_int >= lhs_patch:
+                return True
+
+        if (major_int == rhs_major):
+            if minor_int > rhs_minor:
+                return False 
+            if minor_int < rhs_minor:
+                return True
+            if patch_int <= rhs_patch:
+                return True
+        return False
+    
+    return False
 
 def round_up(dividend, divisor) -> int:
     """Simple function to round up an integer using logic"""
@@ -93,6 +238,150 @@ def get_repository(bytes_as_file)->str:
 
     return url
     
+
+
+@app.route('/home')
+def homepage():
+
+    return render_template('root.html')
+
+@app.route('/home/reset')
+def reset():
+
+    return render_template('reset_warning.html')
+
+@app.route('/home/reset-confirmed', methods=["GET", "POST"])
+def resetConfirmed():
+    if request.method == 'GET':
+        return redirect('/home')
+    gcs = storage.Client()
+
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+    for target_name in blobs:
+        target_blob = bucket.blob(target_name)  #Get the right blob by filename
+        target_blob.delete()
+    
+
+    return render_template('reset_complete.html')
+
+@app.route('/home/upload-package')
+def uploadPackage():
+
+    return render_template('upload_package.html')
+
+@app.route('/home/download-package', methods=['POST'])
+def downloadPackage():
+    if request.method == 'POST':
+        get_package_index = int(request.form['package_index'])
+
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be downloaded from.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+    blobs = [blob_new.name for blob_new in bucket.list_blobs()] # List all the blobs available
+    target_name =  blobs[get_package_index] #Get the blob name
+    target_blob = bucket.blob(target_name)  #Get the right blob by filename
+    bytes = target_blob.download_as_bytes()
+    bytes_as_file = BytesIO(bytes)
+
+    return send_file(bytes_as_file, as_attachment=True, attachment_filename=target_name)
+
+@app.route('/home/view-packages', methods=['GET', 'POST'])
+def viewPackages(curr_page = 1):
+    if request.method == 'POST':
+        curr_page = request.form['next_page']
+    #print("CURR PAGE1: ", curr_page)
+    try:
+        curr_page = int(curr_page)
+    except:
+        curr_page = 1
+    #print("CURR PAGE2: ", curr_page)
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+    all_pages = bucket.list_blobs().pages
+    total_blobs = 0
+    for page in all_pages:
+        total_blobs += page.num_items
+    max_pages = round_up(total_blobs, MAX_RESULTS_PER_PAGE)
+    if (curr_page < 1):           #Should we deal with an upper bound?
+        curr_page = 1
+    elif(curr_page > max_pages):
+        curr_page = max_pages
+    max_results = MAX_RESULTS_PER_PAGE * curr_page
+    package_identifiers = []
+    #print("CURR PAGE3: ", curr_page)
+    for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
+        if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
+            #print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
+            blob_tuple = (index_blobs, blob.name)
+            package_identifiers.append(blob_tuple)
+
+
+    return render_template('view_packages.html', package_identifiers=package_identifiers, curr_page=curr_page, max_pages=max_pages)
+
+@app.route('/home/upload', methods=['POST'])
+def upload():
+    """Process the uploaded file and upload it to Google Cloud Storage."""
+    # Create a Cloud Storage client.
+    gcs = storage.Client()
+
+    # Get the bucket that the file will be uploaded to.
+    bucket = gcs.get_bucket(CLOUD_STORAGE_BUCKET)
+
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'files' not in request.files:
+            return redirect(request.url)
+        uploaded_files = request.files.getlist('files')
+    for uploaded_file in uploaded_files:
+        
+        if not (uploaded_file):
+            return 'No file uploaded.', 400
+        if not (allowed_file(uploaded_file.filename)):
+            return 'Unallowed file type uploaded. Only .zip files are accepted at this time.', 400            
+        if uploaded_file.filename == '':
+            return 'No selected file', 400 
+
+        uploaded_file.name = secure_filename(uploaded_file.name)   #ensure the filename is OK for computers
+        if uploaded_file.filename == '':
+            return 'secure_filename broke and returned an empty filename', 400 
+
+        orig_data = uploaded_file.read()
+        orig_contenttype = uploaded_file.content_type
+
+        json_as_string = zipLogic(uploaded_file)
+        fileID, fileName, fileVersion = makeIdentifiers(json_as_string)
+        file_ID = file_ID.replace("_", "")  #Ensure underscores are only used in the final filename
+        file_name = file_name.replace("_", "")
+        final_file_name = secure_filename(file_name + "_" + file_ID + "_" + fileVersion + ".zip")
+        uploaded_file.filename = final_file_name
+
+
+
+        ########################################################################################
+        #TODO Everything after this needs to be changed to reflect scoring and file ID checking.
+ 
+        print("SUBPROCESS OUTPUT:   ", subprocess.run(["./Java_install/jdk-17.0.1/bin/java", "-jar", "trustworthiness_copy-1.0-SNAPSHOT-jar-with-dependencies.jar", format_json_string(json_as_string)], capture_output=True))
+
+
+
+
+
+        # Create a new blob and upload the file's content.
+        blob = bucket.blob(uploaded_file.filename)
+
+        blob.upload_from_string(
+            orig_data,
+            content_type=orig_contenttype
+        )
+    return render_template('upload_package_success.html')
+
+
+
 class APIHome(Resource):
     def get(self):
         printout={
@@ -111,11 +400,38 @@ class APIHome(Resource):
 class ViewPackages(Resource):
     def __init__(self):
             self.reqparse = reqparse.RequestParser()
-            self.reqparse.add_argument('offset', type = int, default=1)
+            self.reqparse.add_argument('offset', type = int, default=1, location='args')
 
             
     def post(self):
-        try:    
+        try:   
+            input_json = request.get_json()   
+
+            search_names = []
+            search_versions = []
+            print(input_json)
+            queried = False
+            if input_json is not None:
+                queried = True
+                for package_request in input_json:
+                    try:
+                        name = package_request.get('Name')
+                        if name is None:
+                            raise
+                        search_names.append(name)
+                    except:
+                        print("name not present")
+                        return {"message": "Error in request. Specific package requested but no name given with header 'Name'"}, 400
+                    try:
+                        version = package_request.get('Version')
+                        if version is None:
+                            raise
+                        search_versions.append(version)
+                    except:
+                        print("version not present, defaulting to all versions")
+                        search_versions.append("ALL_VERSIONS") #All versions if not given
+
+
             args = self.reqparse.parse_args()
             offset = int(args['offset']) #Should be int given by user
             curr_page = offset
@@ -139,26 +455,52 @@ class ViewPackages(Resource):
                 curr_page = 1
             elif(curr_page > max_pages):
                 curr_page = max_pages
-            max_results = MAX_RESULTS_PER_PAGE * curr_page
+            #max_results = MAX_RESULTS_PER_PAGE * curr_page
             package_identifiers = []
-
-            for  index_blobs, blob in enumerate(bucket.list_blobs(max_results=max_results)):
-                if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
-                    #print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
-                    
-                    #blob_tuple = (index_blobs, blob.name)
-                    #package_identifiers.append(blob_tuple)
-                    fileName, fileID, fileVersion = blob.name.split('_') # get the metadata from the blob name
-                    #fileVersion = fileVersion.removesuffix('.zip') # remove .zip from fileversion  #TODO Discuss with Mohamamd why "removesuffix" doesnt exist -> this was added in 3.9, use replace
+            if queried:
+                matching_packages_page = []
+                results_found = 0
+                for  index_blobs, blob in enumerate(bucket.list_blobs()):
+                    fileName, fileID, fileVersion = blob.name.split('_')
                     fileVersion = fileVersion.replace(".zip", "")
-                    JsonIdentifier = {
-                    "Name": fileName,
-                    "Version": fileVersion,
-                    "ID": fileID
-                    }
-                    package_identifiers.append(JsonIdentifier)
+                    try:
+                        if (fileName in search_names) and (versionChecker(fileVersion, search_versions[search_names.index(fileName)]) ):
 
-            return package_identifiers, 201 #May need a "json.dumps()" here for package_identifiers since it is a list of JSONs
+                            JsonIdentifier = {
+                            "Name": fileName,
+                            "Version": fileVersion,
+                            "ID": fileID
+                            }
+                            package_identifiers.append(JsonIdentifier)
+                            results_found += 1
+                    except:
+                        return {"message": "Version parsing error. Please check request for proper versioning notation."}, 400
+                max_pages = round_up(results_found, MAX_RESULTS_PER_PAGE)
+                if(curr_page > max_pages):
+                    curr_page = max_pages
+                for index, package_info in enumerate(package_identifiers):
+                    if index >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
+                        matching_packages_page.append(package_info)
+                return matching_packages_page, 201
+
+            else:
+                for  index_blobs, blob in enumerate(bucket.list_blobs()):
+                    if index_blobs >= ((curr_page-1) * MAX_RESULTS_PER_PAGE):
+                        #print("Blob index is: ",index_blobs, " with name ", blob.name, " on page ", page)
+                        
+                        #blob_tuple = (index_blobs, blob.name)
+                        #package_identifiers.append(blob_tuple)
+                        fileName, fileID, fileVersion = blob.name.split('_') # get the metadata from the blob name
+                        #fileVersion = fileVersion.removesuffix('.zip') # remove .zip from fileversion  #TODO Discuss with Mohamamd why "removesuffix" doesnt exist -> this was added in 3.9, use replace
+                        fileVersion = fileVersion.replace(".zip", "")
+                        JsonIdentifier = {
+                        "Name": fileName,
+                        "Version": fileVersion,
+                        "ID": fileID
+                        }
+                        package_identifiers.append(JsonIdentifier)
+
+                return package_identifiers, 201 #May need a "json.dumps()" here for package_identifiers since it is a list of JSONs
                
         except:
             return {"message": "Error in request."}, 400

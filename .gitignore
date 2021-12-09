@@ -14,7 +14,6 @@ project-1-3/.classpath
 .idea
 .env
 *.js
-*.html
 *.gif
 *.h
 project-1-3/node-v16.13.0-darwin-x64/*

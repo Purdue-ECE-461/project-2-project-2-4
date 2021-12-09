@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<style>
+    body {
+      text-align: center;
+      font-family: "Helvetica";
+     }
+    
+    #page-wrap { 
+      position: absolute; 
+      left: 50%; 
+      width: 800px;
+      margin-left: -400px;
+    }
+    .button {
+            font-family: "Helvetica";
+        }
+    </style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Application Home Page</title>
+</head>
+<body>
+    <h1>
+        Welcome to the Package Uploader!
+    </h1>
+    <h2>
+        Please choose a package to upload.
+    </h2>
+    <form title="file_upload" class="button" method="POST" action="/home/upload" enctype="multipart/form-data">
+        <input title="file_upload" type="file" name="files" multiple>
+        <input title="file_upload" type="submit">
+    </form>
+    <br>
+    <button class="button" onclick="location.href='/home'" type="button">
+        Return Home
+    </button>
+</body>
+</html>

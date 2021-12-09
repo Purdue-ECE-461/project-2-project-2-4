@@ -15,7 +15,7 @@ public class BusFactor extends Score {
 
 
   public void getBusFactor() {
-    System.out.println("Calculating bus factor score...");
+//    System.out.println("Calculating bus factor score...");
     try {
       //jcabi does not implement jsonArrays, using HttpURLConnection directly instead
 //      URL contributorsUrl = new URL(apiUrl + "/contributors");
@@ -23,7 +23,7 @@ public class BusFactor extends Score {
 //      HttpURLConnection conn = (HttpURLConnection) contributorsUrl.openConnection();
 //      conn.setRequestMethod("GET");
 //      conn.setRequestProperty("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
-        HttpURLConnection conn = makeHttpConnection();
+        HttpURLConnection conn = makeHttpConnection(apiUrl + "/contributors");
 //      if (respon == 200) {
         BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         String tempLine = rd.readLine();
@@ -32,7 +32,7 @@ public class BusFactor extends Score {
         rd.close();
 //      }
     } catch (Exception e){
-      System.out.println("Exception in getBusFactor: " + e);
+//      System.out.println("Exception in getBusFactor: " + e);
     }
 
     score = ((i >= 6) ? 1 : ((float) i / 6));

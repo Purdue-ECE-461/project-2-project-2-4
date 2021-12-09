@@ -1,0 +1,7 @@
+Flask
+flask-restful
+google-cloud-storage
+werkzeug
+typing
+google-cloud-secret-manager
+requests

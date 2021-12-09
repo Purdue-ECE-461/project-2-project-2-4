@@ -1,0 +1,19 @@
+name: Deploying to App Engine
+on:
+  push:
+    branches:
+    - main
+jobs:
+  Continous-Deployment:
+    runs-on: ubuntu-latest
+    steps:
+     - name: Checkout First
+       uses: actions/checkout@v2
+      
+     - name: Deploying to App Engine
+       uses: google-github-actions/deploy-appengine@v0.4.0
+       with:
+         project_id: ${{ secrets.GCP_PROJECT }}
+         credentials: ${{ secrets.GCP_SA_KEY }}
+         working_directory: team-4-gcp-app
+         #deliverables: cloud-test-app/app.yaml

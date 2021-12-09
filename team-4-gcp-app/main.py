@@ -70,7 +70,7 @@ def versionChecker(package_version, acceptable_versions) -> bool:
         accept_minor_int = int(accept_minor)
         accept_major_int = int(accept_major)
         accept_patch_int = int(accept_patch)
-        if (major == accept_major_int):
+        if (major_int == accept_major_int):
             if minor_int > accept_minor_int:
                 return True
             if minor_int < accept_minor_int:
